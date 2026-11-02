@@ -1,38 +1,32 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
   ShieldCheck,
   Truck,
-  CreditCard,
+  QrCode,
   Banknote,
   Lock,
   ArrowLeft,
   Sparkles,
   ShoppingBag,
-  CheckCircle2,
   AlertCircle,
 } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
-import { PaymentMethod, ShippingAddress } from "@/lib/types";
-
-// Declare Razorpay window interface
-declare global {
-  interface Window {
-    Razorpay: any;
-  }
-}
+import { PaymentMethod, ShippingAddress, OrderRecord } from "@/lib/types";
+import DirectUPIPayment from "@/components/DirectUPIPayment";
 
 export default function CheckoutPage() {
   const router = useRouter();
   const { items, getSubtotal, getShippingFee, getTotal, clearCart } = useCartStore();
 
-  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("razorpay");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("DIRECT_UPI");
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [activeUpiOrder, setActiveUpiOrder] = useState<OrderRecord | null>(null);
 
   const [address, setAddress] = useState<ShippingAddress>({
     fullName: "",
@@ -48,20 +42,6 @@ export default function CheckoutPage() {
   const shippingFee = getShippingFee();
   const total = getTotal();
 
-  // Load Razorpay Script
-  useEffect(() => {
-    const script = document.createElement("script");
-    script.src = "https://checkout.razorpay.com/v1/checkout.js";
-    script.async = true;
-    document.body.appendChild(script);
-
-    return () => {
-      if (document.body.contains(script)) {
-        document.body.removeChild(script);
-      }
-    };
-  }, []);
-
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setAddress((prev) => ({ ...prev, [name]: value }));
@@ -69,10 +49,10 @@ export default function CheckoutPage() {
 
   const validateForm = () => {
     if (!address.fullName.trim()) return "Please enter your full name";
-    if (!address.email.trim() || !address.email.includes("@")) return "Please enter a valid email";
+    if (!address.email.trim() || !address.email.includes("@")) return "Please enter a valid email address";
     if (!address.phone.trim() || address.phone.replace(/\D/g, "").length < 10)
-      return "Please enter a valid 10-digit phone number";
-    if (!address.street.trim()) return "Please enter your street address";
+      return "Please enter a valid 10-digit mobile number";
+    if (!address.street.trim()) return "Please enter your street address / apartment details";
     if (!address.city.trim()) return "Please enter your city";
     if (!address.state.trim()) return "Please enter your state";
     if (!address.pincode.trim() || address.pincode.length < 6)
@@ -98,120 +78,34 @@ export default function CheckoutPage() {
     setLoading(true);
 
     try {
-      if (paymentMethod === "cod") {
-        // Cash on delivery: Direct order creation & automated Shiprocket dispatch
-        const res = await fetch("/api/orders/create", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            customer: address,
-            items,
-            subtotal,
-            shippingFee,
-            total,
-            paymentMethod: "cod",
-          }),
-        });
+      const res = await fetch("/api/orders/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customer: address,
+          items,
+          total,
+          paymentMethod,
+        }),
+      });
 
-        const data = await res.json();
-        if (data.success && data.order) {
-          clearCart();
-          router.push(`/order-success?orderId=${data.order.orderNumber}`);
-        } else {
-          throw new Error(data.error || "Failed to place COD order");
-        }
+      const data = await res.json();
+
+      if (!res.ok || !data.success || !data.order) {
+        throw new Error(data.error || "Failed to create order");
+      }
+
+      const createdOrder: OrderRecord = data.order;
+
+      if (paymentMethod === "DIRECT_UPI") {
+        // Show interactive Direct UPI screen with QR Code and UTR submission
+        clearCart();
+        setActiveUpiOrder(createdOrder);
+        setLoading(false);
       } else {
-        // Razorpay prepaid payment flow
-        const orderRes = await fetch("/api/checkout/razorpay", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount: total,
-            receipt: `sny_${Date.now()}`,
-            notes: {
-              customerName: address.fullName,
-              customerEmail: address.email,
-              customerPhone: address.phone,
-            },
-          }),
-        });
-
-        const razorpayOrder = await orderRes.json();
-
-        if (!orderRes.ok || !razorpayOrder.orderId) {
-          throw new Error(razorpayOrder.error || "Failed to initialize Razorpay");
-        }
-
-        // If Razorpay SDK is available, trigger standard checkout modal
-        if (typeof window.Razorpay === "function" && !razorpayOrder.isSimulated) {
-          const options = {
-            key: razorpayOrder.keyId,
-            amount: razorpayOrder.amount,
-            currency: "INR",
-            name: "SNY PERFUMES",
-            description: "Haute Parfumerie Order",
-            image: "https://snyperfumes.com/logo.png",
-            order_id: razorpayOrder.orderId,
-            handler: async function (response: any) {
-              // On payment success, save confirmed order and dispatch Shiprocket shipment
-              const createRes = await fetch("/api/orders/create", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                  customer: address,
-                  items,
-                  subtotal,
-                  shippingFee,
-                  total,
-                  paymentMethod: "razorpay",
-                  razorpayOrderId: razorpayOrder.orderId,
-                  razorpayPaymentId: response.razorpay_payment_id,
-                }),
-              });
-
-              const created = await createRes.json();
-              if (created.success) {
-                clearCart();
-                router.push(`/order-success?orderId=${created.order.orderNumber}`);
-              }
-            },
-            prefill: {
-              name: address.fullName,
-              email: address.email,
-              contact: address.phone,
-            },
-            theme: {
-              color: "#D4AF37",
-            },
-          };
-
-          const rzp = new window.Razorpay(options);
-          rzp.open();
-          setLoading(false);
-        } else {
-          // Sandbox / preview simulation: complete payment seamlessly
-          const mockPaymentId = `pay_mock_${Date.now()}`;
-          const createRes = await fetch("/api/orders/create", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              customer: address,
-              items,
-              subtotal,
-              shippingFee,
-              total,
-              paymentMethod: "razorpay",
-              razorpayOrderId: razorpayOrder.orderId,
-              razorpayPaymentId: mockPaymentId,
-            }),
-          });
-
-          const created = await createRes.json();
-          if (created.success) {
-            clearCart();
-            router.push(`/order-success?orderId=${created.order.orderNumber}`);
-          }
-        }
+        // COD order: Shiprocket is generated immediately
+        clearCart();
+        router.push(`/account/orders/${createdOrder.id}`);
       }
     } catch (err: any) {
       console.error("Checkout submission failed:", err);
@@ -235,11 +129,16 @@ export default function CheckoutPage() {
 
           <div className="flex items-center gap-2 text-xs text-zinc-400">
             <Lock className="w-3.5 h-3.5 text-gold" />
-            <span>256-bit SSL Secure Checkout</span>
+            <span>256-bit Encrypted Checkout</span>
           </div>
         </div>
 
-        {items.length === 0 ? (
+        {/* If Direct UPI order was created, render interactive payment screen */}
+        {activeUpiOrder ? (
+          <div className="space-y-6">
+            <DirectUPIPayment order={activeUpiOrder} />
+          </div>
+        ) : items.length === 0 ? (
           <div className="p-12 text-center rounded-3xl bg-zinc-950 border border-zinc-800 space-y-4 max-w-md mx-auto">
             <ShoppingBag className="w-12 h-12 text-zinc-600 mx-auto" />
             <h2 className="text-xl font-serif font-bold text-white">Your Atelier Bag is Empty</h2>
@@ -255,7 +154,7 @@ export default function CheckoutPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-            {/* Left 7 Columns: Form */}
+            {/* Left 7 Columns: Checkout Form */}
             <div className="lg:col-span-7 space-y-8">
               {errorMessage && (
                 <div className="p-4 rounded-2xl bg-red-950/50 border border-red-500/50 text-red-200 text-xs flex items-center gap-3 animate-in fade-in">
@@ -324,7 +223,7 @@ export default function CheckoutPage() {
 
                     <div className="sm:col-span-2 space-y-1.5">
                       <label className="text-xs font-medium text-zinc-300">
-                        Street Address & Flat / House No. <span className="text-gold">*</span>
+                        Street Address & Apartment / Landmark <span className="text-gold">*</span>
                       </label>
                       <input
                         type="text"
@@ -385,23 +284,23 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* Section 2: Payment Method Toggle */}
+                {/* Section 2: Zero-Fee Payment Selection */}
                 <div className="p-6 md:p-8 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-6">
                   <div className="flex items-center gap-2 pb-4 border-b border-zinc-800">
                     <span className="w-6 h-6 rounded-full bg-gold/10 border border-gold/40 text-gold flex items-center justify-center text-xs font-mono font-bold">
                       2
                     </span>
                     <h3 className="text-base font-serif font-bold text-white tracking-wide">
-                      Payment Method
+                      Select Payment Mode
                     </h3>
                   </div>
 
                   <div className="space-y-3">
-                    {/* Razorpay Prepaid Option */}
+                    {/* Direct UPI (Default, 0% fee) */}
                     <label
-                      onClick={() => setPaymentMethod("razorpay")}
+                      onClick={() => setPaymentMethod("DIRECT_UPI")}
                       className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-all ${
-                        paymentMethod === "razorpay"
+                        paymentMethod === "DIRECT_UPI"
                           ? "bg-zinc-900 border-gold shadow-gold-glow"
                           : "bg-zinc-950 border-zinc-800 hover:border-zinc-700"
                       }`}
@@ -409,31 +308,31 @@ export default function CheckoutPage() {
                       <input
                         type="radio"
                         name="paymentMethod"
-                        checked={paymentMethod === "razorpay"}
-                        onChange={() => setPaymentMethod("razorpay")}
+                        checked={paymentMethod === "DIRECT_UPI"}
+                        onChange={() => setPaymentMethod("DIRECT_UPI")}
                         className="mt-1 text-gold focus:ring-gold"
                       />
                       <div className="flex-1 space-y-1">
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-semibold text-white flex items-center gap-2">
-                            <CreditCard className="w-4 h-4 text-gold" />
-                            <span>Online Payment (Razorpay — UPI, GPay, Cards, Netbanking)</span>
+                            <QrCode className="w-4 h-4 text-gold" />
+                            <span>Direct UPI (0% Fee, Instant GPay/PhonePe/Paytm QR)</span>
                           </span>
                           <span className="px-2 py-0.5 rounded bg-gold/10 border border-gold/30 text-[10px] text-gold font-semibold uppercase">
-                            Fastest Dispatch
+                            Recommended
                           </span>
                         </div>
                         <p className="text-[11px] text-zinc-400">
-                          Instant verification. 100% encrypted & automated priority courier generation via Shiprocket.
+                          Scan QR on desktop or tap to open your preferred UPI app on mobile. No gateway markups.
                         </p>
                       </div>
                     </label>
 
                     {/* Cash On Delivery Option */}
                     <label
-                      onClick={() => setPaymentMethod("cod")}
+                      onClick={() => setPaymentMethod("COD")}
                       className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-all ${
-                        paymentMethod === "cod"
+                        paymentMethod === "COD"
                           ? "bg-zinc-900 border-gold shadow-gold-glow"
                           : "bg-zinc-950 border-zinc-800 hover:border-zinc-700"
                       }`}
@@ -441,8 +340,8 @@ export default function CheckoutPage() {
                       <input
                         type="radio"
                         name="paymentMethod"
-                        checked={paymentMethod === "cod"}
-                        onChange={() => setPaymentMethod("cod")}
+                        checked={paymentMethod === "COD"}
+                        onChange={() => setPaymentMethod("COD")}
                         className="mt-1 text-gold focus:ring-gold"
                       />
                       <div className="flex-1 space-y-1">
@@ -472,10 +371,10 @@ export default function CheckoutPage() {
                   {loading ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                      <span>Securing Order...</span>
+                      <span>Creating Atelier Order...</span>
                     </div>
-                  ) : paymentMethod === "razorpay" ? (
-                    <span>Pay ₹{total} & Confirm Order</span>
+                  ) : paymentMethod === "DIRECT_UPI" ? (
+                    <span>Proceed to Direct UPI QR (₹{total})</span>
                   ) : (
                     <span>Confirm Cash On Delivery Order (₹{total})</span>
                   )}
@@ -490,7 +389,6 @@ export default function CheckoutPage() {
                   Order Summary ({items.reduce((acc, i) => acc + i.quantity, 0)} Items)
                 </h3>
 
-                {/* Items preview */}
                 <div className="space-y-3 max-h-72 overflow-y-auto pr-1">
                   {items.map((item) => (
                     <div key={item.id} className="flex items-center gap-3">
@@ -520,7 +418,6 @@ export default function CheckoutPage() {
                   ))}
                 </div>
 
-                {/* Cost breakdown */}
                 <div className="pt-4 border-t border-zinc-800/80 space-y-2 text-xs">
                   <div className="flex justify-between text-zinc-400">
                     <span>Subtotal</span>
@@ -542,15 +439,14 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* Reassurance pills */}
                 <div className="pt-4 border-t border-zinc-800/80 space-y-2.5 text-[11px] text-zinc-400">
                   <div className="flex items-center gap-2">
                     <Truck className="w-4 h-4 text-gold flex-shrink-0" />
-                    <span>Estimated delivery in 2-3 business days</span>
+                    <span>Automated courier dispatch via Shiprocket</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-gold flex-shrink-0" />
-                    <span>Sealed luxury atomizers with authenticity seal</span>
+                    <span>Zero payment processing fees on Direct UPI</span>
                   </div>
                 </div>
               </div>

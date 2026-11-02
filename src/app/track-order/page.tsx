@@ -2,17 +2,17 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
   Search,
   Truck,
   CheckCircle2,
-  Clock,
   ExternalLink,
-  MapPin,
   AlertCircle,
-  Package,
   Sparkles,
+  QrCode,
+  Banknote,
 } from "lucide-react";
 import { OrderRecord, TrackingStep } from "@/lib/types";
 
@@ -41,7 +41,7 @@ function TrackOrderContent() {
       } else {
         setOrder(null);
         setSteps([]);
-        setError(data.error || "No order found matching your inquiry.");
+        setError(data.error || "No order record found matching your query.");
       }
     } catch (err: any) {
       console.error("Tracking lookup error:", err);
@@ -56,7 +56,7 @@ function TrackOrderContent() {
       fetchTracking(initialQuery);
     } else {
       // Auto-load demo order so user can immediately view timeline
-      fetchTracking("SNY-2026-9842");
+      fetchTracking("ord_demo_9842");
     }
   }, [initialQuery]);
 
@@ -78,7 +78,7 @@ function TrackOrderContent() {
             Track Your <span className="gold-gradient-text italic">Order.</span>
           </h1>
           <p className="text-sm text-zinc-400 font-light">
-            Enter your SNY Order Reference or 10-digit mobile number to monitor your package from the atelier to your doorstep.
+            Enter your SNY Order ID or 10-digit mobile number to monitor your package from the atelier to your doorstep.
           </p>
         </div>
 
@@ -89,7 +89,7 @@ function TrackOrderContent() {
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="e.g. SNY-2026-9842 or 9876543210"
+              placeholder="e.g. ord_demo_9842 or 9876543210"
               className="w-full px-6 py-4 pr-32 rounded-full bg-zinc-950 border border-zinc-800 focus:border-gold focus:outline-none text-white text-xs sm:text-sm placeholder:text-zinc-500 shadow-2xl transition-colors font-mono"
             />
             <button
@@ -108,18 +108,17 @@ function TrackOrderContent() {
             </button>
           </div>
 
-          {/* Quick Demo Pill */}
           <div className="flex items-center justify-center gap-2 mt-3 text-[11px] text-zinc-500">
             <span>Try demo active order:</span>
             <button
               type="button"
               onClick={() => {
-                setQuery("SNY-2026-9842");
-                fetchTracking("SNY-2026-9842");
+                setQuery("ord_demo_9842");
+                fetchTracking("ord_demo_9842");
               }}
               className="text-gold underline hover:text-white transition-colors font-mono"
             >
-              SNY-2026-9842
+              ord_demo_9842
             </button>
           </div>
         </form>
@@ -140,21 +139,20 @@ function TrackOrderContent() {
                 <span className="text-[10px] uppercase tracking-wider text-zinc-500">
                   Shipment Identification
                 </span>
-                <div className="text-xl sm:text-2xl font-serif font-bold text-white flex items-center gap-2">
-                  <span>{order.orderNumber}</span>
+                <div className="text-xl sm:text-2xl font-serif font-bold text-white flex items-center gap-2 flex-wrap">
+                  <span className="font-mono">{order.id}</span>
                   <span className="px-2.5 py-0.5 rounded-full bg-gold/10 border border-gold/40 text-[10px] text-gold font-mono font-medium uppercase">
-                    {order.orderStatus.replace(/_/g, " ")}
+                    {order.status.replace(/_/g, " ")}
                   </span>
                 </div>
                 <div className="text-xs text-zinc-400">
-                  Placed on {new Date(order.createdAt).toLocaleDateString("en-IN", { dateStyle: "long" })}
+                  Placed on {new Date(order.created_at).toLocaleDateString("en-IN", { dateStyle: "long" })}
                 </div>
               </div>
 
-              {/* Direct Shiprocket Live Tracking Button */}
-              {order.shiprocketTrackingUrl && (
+              {order.tracking_url && (
                 <a
-                  href={order.shiprocketTrackingUrl}
+                  href={order.tracking_url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-zinc-900 border border-zinc-700 hover:border-gold/60 text-gold hover:text-white text-xs font-semibold uppercase tracking-wider transition-all self-start sm:self-center"
@@ -175,7 +173,6 @@ function TrackOrderContent() {
               <div className="relative pl-6 sm:pl-8 space-y-8 before:absolute before:left-[11px] sm:before:left-[15px] before:top-2 before:bottom-2 before:w-[2px] before:bg-zinc-800">
                 {steps.map((step, idx) => (
                   <div key={idx} className="relative group">
-                    {/* Circle Node */}
                     <div
                       className={`absolute -left-6 sm:-left-8 top-0.5 w-6 h-6 rounded-full flex items-center justify-center transition-all ${
                         step.completed
@@ -192,7 +189,6 @@ function TrackOrderContent() {
                       )}
                     </div>
 
-                    {/* Step Content */}
                     <div className="space-y-1">
                       <div className="flex items-center justify-between">
                         <h4
@@ -221,58 +217,50 @@ function TrackOrderContent() {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-6 border-t border-zinc-800 text-xs">
               <div className="bg-zinc-900/60 p-4 rounded-2xl border border-zinc-800/80 space-y-1">
                 <div className="text-[10px] uppercase tracking-wider text-zinc-500">Courier Partner</div>
-                <div className="font-semibold text-white">Blue Dart / Delhivery (Shiprocket)</div>
+                <div className="font-semibold text-white">{order.courier_name || "Shiprocket Express"}</div>
                 <div className="text-[11px] text-zinc-400 font-mono">
-                  AWB: {order.shiprocketShipmentId || "SR_AIR_8829"}
+                  AWB: {order.awb_code || "Generated on Dispatch"}
                 </div>
               </div>
 
               <div className="bg-zinc-900/60 p-4 rounded-2xl border border-zinc-800/80 space-y-1">
                 <div className="text-[10px] uppercase tracking-wider text-zinc-500">Destination</div>
-                <div className="font-semibold text-white truncate">{order.customer.fullName}</div>
+                <div className="font-semibold text-white truncate">{order.customer_name}</div>
                 <div className="text-[11px] text-zinc-400 truncate">
-                  {order.customer.city}, {order.customer.state} ({order.customer.pincode})
+                  {order.city}, {order.state} ({order.pincode})
                 </div>
               </div>
 
               <div className="bg-zinc-900/60 p-4 rounded-2xl border border-zinc-800/80 space-y-1">
-                <div className="text-[10px] uppercase tracking-wider text-zinc-500">Estimated Delivery</div>
-                <div className="font-semibold text-gold font-mono">
-                  {order.estimatedDelivery || "Expected in 48h"}
+                <div className="text-[10px] uppercase tracking-wider text-zinc-500">Payment & Verification</div>
+                <div className="font-semibold text-gold font-mono flex items-center gap-1.5">
+                  {order.payment_method === "DIRECT_UPI" ? (
+                    <>
+                      <QrCode className="w-3.5 h-3.5 text-gold" />
+                      <span>Direct UPI (₹{order.total_amount})</span>
+                    </>
+                  ) : (
+                    <>
+                      <Banknote className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>COD (₹{order.total_amount})</span>
+                    </>
+                  )}
                 </div>
-                <div className="text-[11px] text-zinc-400">
-                  Payment: {order.paymentMethod === "cod" ? "Cash On Delivery" : "Prepaid"}
+                <div className="text-[11px] text-zinc-400 font-mono">
+                  {order.utr_number ? `UTR: ${order.utr_number}` : "Doorstep Pay"}
                 </div>
               </div>
             </div>
 
-            {/* Items Included */}
-            <div className="pt-6 border-t border-zinc-800 space-y-4">
-              <h4 className="text-xs uppercase tracking-wider text-zinc-400 font-medium">
-                Fragrance Items in Parcel
-              </h4>
-              <div className="space-y-3">
-                {order.items.map((item) => (
-                  <div key={item.id} className="flex items-center gap-4 bg-zinc-900/40 p-3 rounded-2xl border border-zinc-800/60">
-                    <div className="relative w-12 h-14 rounded-xl overflow-hidden bg-zinc-800 flex-shrink-0">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-cover"
-                        sizes="48px"
-                      />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold text-white truncate">{item.name}</div>
-                      <div className="text-[11px] text-zinc-400 font-mono">{item.size} • Qty: {item.quantity}</div>
-                    </div>
-                    <div className="text-xs font-mono font-semibold text-gold">
-                      ₹{item.price * item.quantity}
-                    </div>
-                  </div>
-                ))}
-              </div>
+            {/* Full Details Link */}
+            <div className="pt-4 text-center">
+              <Link
+                href={`/account/orders/${order.id}`}
+                className="inline-flex items-center gap-2 text-xs text-gold hover:underline uppercase tracking-wider font-semibold"
+              >
+                <span>View Full Order Details & Invoice</span>
+                <ExternalLink className="w-3 h-3" />
+              </Link>
             </div>
           </div>
         )}

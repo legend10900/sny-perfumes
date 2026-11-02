@@ -1,8 +1,10 @@
 import { createClient } from "@supabase/supabase-js";
-import { OrderRecord } from "./types";
+import { OrderRecord, OrderItem } from "./types";
+import { createShiprocketOrder } from "./shiprocket";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
+const supabaseServiceKey =
+  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "";
 
 export const isSupabaseConfigured = Boolean(supabaseUrl && supabaseServiceKey);
 
@@ -12,284 +14,264 @@ export const supabase = isSupabaseConfigured
     })
   : null;
 
-// Built-in in-memory / demo fallback store when Supabase environment variables are being set up
-const fallbackOrders: Map<string, OrderRecord> = new Map([
+// Built-in in-memory fallback cache for development & instant previews
+const memoryOrders: Map<string, OrderRecord> = new Map([
   [
-    "SNY-2026-9842",
+    "ord_demo_9842",
     {
       id: "ord_demo_9842",
-      orderNumber: "SNY-2026-9842",
-      createdAt: new Date(Date.now() - 36 * 3600 * 1000).toISOString(),
-      customer: {
-        fullName: "Aarav Sharma",
-        email: "aarav.sharma@example.com",
-        phone: "9876543210",
-        street: "B-402, Signature Heights, MG Road",
-        city: "Mumbai",
-        state: "Maharashtra",
-        pincode: "400001",
-      },
+      customer_name: "Aarav Sharma",
+      customer_email: "aarav.sharma@example.com",
+      customer_phone: "9876543210",
+      shipping_address: "B-402, Signature Heights, MG Road",
+      city: "Mumbai",
+      state: "Maharashtra",
+      pincode: "400001",
+      total_amount: 698,
+      payment_method: "DIRECT_UPI",
+      utr_number: "419283719028",
+      status: "DISPATCHED",
+      shiprocket_order_id: 8841920,
+      shiprocket_shipment_id: 771920,
+      awb_code: "SR881920381IN",
+      courier_name: "Blue Dart Express",
+      tracking_url: "https://shiprocket.co/tracking/771920",
+      created_at: new Date(Date.now() - 24 * 3600 * 1000).toISOString(),
       items: [
         {
-          id: "midnight-oud-30ml",
-          productId: "midnight-oud",
-          name: "Midnight Oud (Extrait)",
-          size: "30ml",
+          product_name: "Midnight Oud (30ml)",
           price: 349,
-          originalPrice: 499,
-          image: "/branding/midnight-oud.jpg",
           quantity: 1,
-          accentColor: "#c084fc",
         },
         {
-          id: "titan-aura-30ml",
-          productId: "titan-aura",
-          name: "Titan Aura",
-          size: "30ml",
+          product_name: "Titan Aura (30ml)",
           price: 349,
-          originalPrice: 499,
-          image: "/branding/titan-aura.jpg",
           quantity: 1,
-          accentColor: "#f59e0b",
         },
       ],
-      subtotal: 698,
-      shippingFee: 0,
-      total: 698,
-      paymentMethod: "razorpay",
-      paymentStatus: "PAID",
-      orderStatus: "IN_TRANSIT",
-      razorpayPaymentId: "pay_Ordx9281729K",
-      razorpayOrderId: "order_K8192837190",
-      shiprocketOrderId: "SR-8841920",
-      shiprocketShipmentId: "SR_SHP_771920",
-      shiprocketTrackingUrl: "https://shiprocket.co/tracking/SR_SHP_771920",
-      estimatedDelivery: new Date(Date.now() + 48 * 3600 * 1000).toLocaleDateString("en-IN", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-      }),
     },
   ],
 ]);
 
-export async function saveOrder(order: OrderRecord): Promise<{ success: boolean; error?: string }> {
-  // Always save to local map for instant query consistency
-  fallbackOrders.set(order.orderNumber, order);
-  fallbackOrders.set(order.id, order);
+// Helper to save order and items
+export async function createOrder(
+  orderData: Omit<OrderRecord, "id" | "created_at">,
+  items: OrderItem[]
+): Promise<OrderRecord> {
+  const generatedId = `sny_${Date.now()}_${Math.floor(1000 + Math.random() * 9000)}`;
+  const now = new Date().toISOString();
 
-  if (isSupabaseConfigured && supabase) {
+  let finalOrder: OrderRecord = {
+    ...orderData,
+    id: generatedId,
+    created_at: now,
+    items,
+  };
+
+  // If COD, dispatch immediately via Shiprocket
+  if (finalOrder.payment_method === "COD") {
     try {
-      const { error } = await supabase.from("orders").upsert({
-        id: order.id,
-        order_number: order.orderNumber,
-        customer: order.customer,
-        items: order.items,
-        subtotal: order.subtotal,
-        shipping_fee: order.shippingFee,
-        total: order.total,
-        payment_method: order.paymentMethod,
-        payment_status: order.paymentStatus,
-        order_status: order.orderStatus,
-        razorpay_payment_id: order.razorpayPaymentId || null,
-        razorpay_order_id: order.razorpayOrderId || null,
-        shiprocket_order_id: order.shiprocketOrderId || null,
-        shiprocket_shipment_id: order.shiprocketShipmentId || null,
-        shiprocket_tracking_url: order.shiprocketTrackingUrl || null,
-        created_at: order.createdAt,
-      });
-
-      if (error) {
-        console.warn("Supabase upsert warning:", error.message);
-        return { success: true }; // Continue with local fallback
+      const shipment = await createShiprocketOrder(finalOrder, items);
+      if (shipment.success) {
+        finalOrder.shiprocket_order_id = shipment.order_id;
+        finalOrder.shiprocket_shipment_id = shipment.shipment_id;
+        finalOrder.awb_code = shipment.awb_code;
+        finalOrder.courier_name = shipment.courier_name;
+        finalOrder.tracking_url = shipment.tracking_url;
+        finalOrder.status = "DISPATCHED";
       }
-    } catch (err: unknown) {
-      console.warn("Supabase error:", err);
+    } catch (shipErr) {
+      console.warn("Shiprocket COD automated generation error:", shipErr);
     }
   }
 
-  return { success: true };
+  // Save to memory cache
+  memoryOrders.set(finalOrder.id, finalOrder);
+
+  // If Supabase is connected, write to Supabase tables
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data: insertedOrder, error: orderErr } = await supabase
+        .from("orders")
+        .insert({
+          customer_name: finalOrder.customer_name,
+          customer_email: finalOrder.customer_email,
+          customer_phone: finalOrder.customer_phone,
+          shipping_address: finalOrder.shipping_address,
+          city: finalOrder.city,
+          state: finalOrder.state,
+          pincode: finalOrder.pincode,
+          total_amount: finalOrder.total_amount,
+          payment_method: finalOrder.payment_method,
+          utr_number: finalOrder.utr_number || null,
+          status: finalOrder.status,
+          shiprocket_order_id: finalOrder.shiprocket_order_id || null,
+          shiprocket_shipment_id: finalOrder.shiprocket_shipment_id || null,
+          awb_code: finalOrder.awb_code || null,
+          courier_name: finalOrder.courier_name || null,
+          tracking_url: finalOrder.tracking_url || null,
+        })
+        .select()
+        .single();
+
+      if (!orderErr && insertedOrder) {
+        finalOrder.id = insertedOrder.id;
+        memoryOrders.set(finalOrder.id, finalOrder);
+
+        // Insert order_items
+        if (items.length > 0) {
+          const itemsPayload = items.map((i) => ({
+            order_id: insertedOrder.id,
+            product_name: i.product_name,
+            price: i.price,
+            quantity: i.quantity,
+          }));
+          await supabase.from("order_items").insert(itemsPayload);
+        }
+      }
+    } catch (dbErr) {
+      console.warn("Supabase insert order error:", dbErr);
+    }
+  }
+
+  return finalOrder;
 }
 
-export async function updateOrderPayment(
-  orderIdOrNumber: string,
-  paymentId: string,
-  status: "PAID" | "FAILED" = "PAID"
-): Promise<OrderRecord | null> {
-  let order = fallbackOrders.get(orderIdOrNumber);
+// Update order with 12-digit UTR
+export async function updateOrderUTR(orderId: string, utrNumber: string): Promise<OrderRecord | null> {
+  const cleanUTR = utrNumber.trim();
+  let order = memoryOrders.get(orderId);
 
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .update({
+          utr_number: cleanUTR,
+          status: "PENDING_VERIFICATION",
+        })
+        .eq("id", orderId)
+        .select()
+        .single();
+
+      if (!error && data) {
+        const updated: OrderRecord = {
+          ...data,
+          items: order?.items || [],
+        };
+        memoryOrders.set(orderId, updated);
+        return updated;
+      }
+    } catch (err) {
+      console.warn("Supabase update UTR error:", err);
+    }
+  }
+
+  if (order) {
+    order.utr_number = cleanUTR;
+    order.status = "PENDING_VERIFICATION";
+    memoryOrders.set(orderId, order);
+    return order;
+  }
+
+  return null;
+}
+
+// Admin action: Verify payment and trigger automated Shiprocket dispatch
+export async function verifyAndDispatchOrder(orderId: string): Promise<{ success: boolean; order?: OrderRecord; error?: string }> {
+  let order = await getOrderById(orderId);
   if (!order) {
-    for (const ord of Array.from(fallbackOrders.values())) {
-      if (ord.razorpayOrderId === orderIdOrNumber || ord.id === orderIdOrNumber) {
-        order = ord;
-        break;
-      }
+    return { success: false, error: "Order not found" };
+  }
+
+  try {
+    // Trigger Shiprocket ad-hoc API with payment_method: "Prepaid"
+    const shipment = await createShiprocketOrder(order, order.items || []);
+
+    const updatedData: Partial<OrderRecord> = {
+      status: "DISPATCHED",
+      shiprocket_order_id: shipment.order_id,
+      shiprocket_shipment_id: shipment.shipment_id,
+      awb_code: shipment.awb_code,
+      courier_name: shipment.courier_name,
+      tracking_url: shipment.tracking_url,
+    };
+
+    if (isSupabaseConfigured && supabase) {
+      await supabase.from("orders").update(updatedData).eq("id", orderId);
     }
+
+    const mergedOrder: OrderRecord = {
+      ...order,
+      ...updatedData,
+    };
+    memoryOrders.set(orderId, mergedOrder);
+
+    return { success: true, order: mergedOrder };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to dispatch via Shiprocket" };
   }
-
-  if (isSupabaseConfigured && supabase) {
-    try {
-      const { data } = await supabase
-        .from("orders")
-        .update({
-          payment_status: status,
-          order_status: status === "PAID" ? "CONFIRMED" : "PENDING",
-          razorpay_payment_id: paymentId,
-        })
-        .or(`id.eq.${orderIdOrNumber},order_number.eq.${orderIdOrNumber},razorpay_order_id.eq.${orderIdOrNumber}`)
-        .select()
-        .single();
-
-      if (data) {
-        const mapped: OrderRecord = {
-          id: data.id,
-          orderNumber: data.order_number,
-          createdAt: data.created_at,
-          customer: data.customer,
-          items: data.items,
-          subtotal: data.subtotal,
-          shippingFee: data.shipping_fee,
-          total: data.total,
-          paymentMethod: data.payment_method,
-          paymentStatus: data.payment_status,
-          orderStatus: data.order_status,
-          razorpayPaymentId: data.razorpay_payment_id,
-          razorpayOrderId: data.razorpay_order_id,
-          shiprocketOrderId: data.shiprocket_order_id,
-          shiprocketShipmentId: data.shiprocket_shipment_id,
-          shiprocketTrackingUrl: data.shiprocket_tracking_url,
-        };
-        fallbackOrders.set(mapped.orderNumber, mapped);
-        return mapped;
-      }
-    } catch (err) {
-      console.warn("Supabase update error:", err);
-    }
-  }
-
-  if (order) {
-    order.paymentStatus = status;
-    if (status === "PAID") order.orderStatus = "CONFIRMED";
-    order.razorpayPaymentId = paymentId;
-    fallbackOrders.set(order.orderNumber, order);
-    return order;
-  }
-
-  return null;
 }
 
-export async function updateOrderShipment(
-  orderNumber: string,
-  shipmentData: {
-    shiprocketOrderId: string;
-    shiprocketShipmentId: string;
-    shiprocketTrackingUrl: string;
-    orderStatus?: OrderRecord["orderStatus"];
-  }
-): Promise<OrderRecord | null> {
-  const order = fallbackOrders.get(orderNumber);
+// Fetch order by ID
+export async function getOrderById(orderId: string): Promise<OrderRecord | null> {
+  // Check memory first
+  const memoryMatch = memoryOrders.get(orderId);
+  if (memoryMatch) return memoryMatch;
 
-  if (isSupabaseConfigured && supabase) {
-    try {
-      const { data } = await supabase
-        .from("orders")
-        .update({
-          shiprocket_order_id: shipmentData.shiprocketOrderId,
-          shiprocket_shipment_id: shipmentData.shiprocketShipmentId,
-          shiprocket_tracking_url: shipmentData.shiprocketTrackingUrl,
-          order_status: shipmentData.orderStatus || "DISPATCHED",
-        })
-        .eq("order_number", orderNumber)
-        .select()
-        .single();
-
-      if (data) {
-        const mapped: OrderRecord = {
-          id: data.id,
-          orderNumber: data.order_number,
-          createdAt: data.created_at,
-          customer: data.customer,
-          items: data.items,
-          subtotal: data.subtotal,
-          shippingFee: data.shipping_fee,
-          total: data.total,
-          paymentMethod: data.payment_method,
-          paymentStatus: data.payment_status,
-          orderStatus: data.order_status,
-          razorpayPaymentId: data.razorpay_payment_id,
-          razorpayOrderId: data.razorpay_order_id,
-          shiprocketOrderId: data.shiprocket_order_id,
-          shiprocketShipmentId: data.shiprocket_shipment_id,
-          shiprocketTrackingUrl: data.shiprocket_tracking_url,
-        };
-        fallbackOrders.set(orderNumber, mapped);
-        return mapped;
-      }
-    } catch (err) {
-      console.warn("Supabase update error:", err);
-    }
-  }
-
-  if (order) {
-    order.shiprocketOrderId = shipmentData.shiprocketOrderId;
-    order.shiprocketShipmentId = shipmentData.shiprocketShipmentId;
-    order.shiprocketTrackingUrl = shipmentData.shiprocketTrackingUrl;
-    order.orderStatus = shipmentData.orderStatus || "DISPATCHED";
-    fallbackOrders.set(orderNumber, order);
-    return order;
-  }
-
-  return null;
-}
-
-export async function getOrder(query: string): Promise<OrderRecord | null> {
-  const clean = query.trim().toUpperCase();
-
-  // Check fallback cache first
-  for (const ord of Array.from(fallbackOrders.values())) {
-    if (
-      ord.orderNumber.toUpperCase() === clean ||
-      ord.id.toUpperCase() === clean ||
-      ord.customer.phone.replace(/\D/g, "") === clean.replace(/\D/g, "")
-    ) {
+  // Search case-insensitive or partial
+  for (const ord of Array.from(memoryOrders.values())) {
+    if (ord.id.toLowerCase() === orderId.toLowerCase() || ord.customer_phone === orderId) {
       return ord;
     }
   }
 
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data } = await supabase
+      const { data: orderData, error } = await supabase
         .from("orders")
-        .select("*")
-        .or(`order_number.ilike.%${query}%,customer->>phone.ilike.%${query}%,id.ilike.%${query}%`)
-        .order("created_at", { ascending: false })
+        .select("*, order_items(*)")
+        .or(`id.eq.${orderId},customer_phone.eq.${orderId}`)
         .limit(1)
         .maybeSingle();
 
-      if (data) {
-        return {
-          id: data.id,
-          orderNumber: data.order_number,
-          createdAt: data.created_at,
-          customer: data.customer,
-          items: data.items,
-          subtotal: data.subtotal,
-          shippingFee: data.shipping_fee,
-          total: data.total,
-          paymentMethod: data.payment_method,
-          paymentStatus: data.payment_status,
-          orderStatus: data.order_status,
-          razorpayPaymentId: data.razorpay_payment_id,
-          razorpayOrderId: data.razorpay_order_id,
-          shiprocketOrderId: data.shiprocket_order_id,
-          shiprocketShipmentId: data.shiprocket_shipment_id,
-          shiprocketTrackingUrl: data.shiprocket_tracking_url,
+      if (!error && orderData) {
+        const mapped: OrderRecord = {
+          ...orderData,
+          items: orderData.order_items || [],
         };
+        memoryOrders.set(mapped.id, mapped);
+        return mapped;
       }
     } catch (err) {
-      console.warn("Supabase getOrder error:", err);
+      console.warn("Supabase getOrderById error:", err);
     }
   }
 
   return null;
+}
+
+// Fetch all orders for admin review
+export async function getAllOrders(): Promise<OrderRecord[]> {
+  if (isSupabaseConfigured && supabase) {
+    try {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("*, order_items(*)")
+        .order("created_at", { ascending: false });
+
+      if (!error && data) {
+        return data.map((d: any) => ({
+          ...d,
+          items: d.order_items || [],
+        }));
+      }
+    } catch (err) {
+      console.warn("Supabase getAllOrders error:", err);
+    }
+  }
+
+  return Array.from(memoryOrders.values()).sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
 }

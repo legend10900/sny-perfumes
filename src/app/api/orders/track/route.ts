@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOrder } from "@/lib/supabase";
+import { getOrderById } from "@/lib/supabase";
 import { TrackingStep, OrderStatus } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -13,30 +13,36 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: "Order ID or Phone number is required" }, { status: 400 });
     }
 
-    const order = await getOrder(query);
+    const order = await getOrderById(query.trim());
 
     if (!order) {
-      return NextResponse.json({ error: "Order not found. Please verify your details." }, { status: 404 });
+      return NextResponse.json(
+        { error: "No order record found. Please verify your reference or contact concierge." },
+        { status: 404 }
+      );
     }
 
-    // Generate real-time timeline steps based on orderStatus
-    const statusOrder: OrderStatus[] = [
-      "CONFIRMED",
+    const statusList: OrderStatus[] = [
+      "PENDING_VERIFICATION",
+      "VERIFIED",
       "DISPATCHED",
-      "IN_TRANSIT",
-      "OUT_FOR_DELIVERY",
       "DELIVERED",
     ];
 
-    const currentIndex = statusOrder.indexOf(order.orderStatus);
+    const currentIndex = statusList.indexOf(order.status);
     const safeIndex = currentIndex === -1 ? 0 : currentIndex;
 
     const steps: TrackingStep[] = [
       {
-        status: "CONFIRMED",
-        label: "Order Confirmed",
-        description: "Your luxury formulation has been reserved and queued for packaging.",
-        timestamp: new Date(order.createdAt).toLocaleDateString("en-IN", {
+        status: "PENDING_VERIFICATION",
+        label: order.payment_method === "COD" ? "Order Confirmed (COD)" : "Payment Reference Submitted",
+        description:
+          order.payment_method === "COD"
+            ? "Order accepted for Cash on Delivery. Queued for packaging."
+            : order.utr_number
+            ? `12-digit UTR (${order.utr_number}) received. Atelier verifying bank notification.`
+            : "Direct UPI initiated. Awaiting 12-digit UTR confirmation.",
+        timestamp: new Date(order.created_at).toLocaleDateString("en-IN", {
           month: "short",
           day: "numeric",
           hour: "2-digit",
@@ -46,34 +52,27 @@ export async function GET(req: NextRequest) {
         current: safeIndex === 0,
       },
       {
-        status: "DISPATCHED",
-        label: "Dispatched from Atelier",
-        description: "Assigned to courier partner via Shiprocket. High-grade safety sealed.",
-        timestamp: safeIndex >= 1 ? "Within 12 hours of order" : undefined,
+        status: "VERIFIED",
+        label: "Atelier Verified & Formulated",
+        description: "Payment confirmed. Authentic French perfume oil batch sealed in luxury matte bottle.",
         completed: safeIndex >= 1,
         current: safeIndex === 1,
       },
       {
-        status: "IN_TRANSIT",
-        label: "In Transit",
-        description: "Safely speeding across express air/surface hub networks to your destination.",
-        timestamp: safeIndex >= 2 ? "Currently at Regional Distribution Hub" : undefined,
+        status: "DISPATCHED",
+        label: "Dispatched via Shiprocket Express",
+        description: order.courier_name
+          ? `In transit with ${order.courier_name}. AWB: ${order.awb_code || "Generated"}.`
+          : "Dispatched to courier network. Safely moving to your city.",
         completed: safeIndex >= 2,
         current: safeIndex === 2,
       },
       {
-        status: "OUT_FOR_DELIVERY",
-        label: "Out For Delivery",
-        description: "The delivery agent will deliver your SNY signature scent at your doorstep.",
+        status: "DELIVERED",
+        label: "Delivered to Doorstep",
+        description: "Delivered into your hands. Unbox and wear your signature scent.",
         completed: safeIndex >= 3,
         current: safeIndex === 3,
-      },
-      {
-        status: "DELIVERED",
-        label: "Delivered",
-        description: "Delivered into your hands. Unbox and wear your signature scent.",
-        completed: safeIndex >= 4,
-        current: safeIndex === 4,
       },
     ];
 

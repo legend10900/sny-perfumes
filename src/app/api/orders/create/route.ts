@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { OrderRecord, ShippingAddress, CartItem, PaymentMethod } from "@/lib/types";
-import { saveOrder } from "@/lib/supabase";
-import { createShiprocketOrder } from "@/lib/shiprocket";
+import { ShippingAddress, CartItem, PaymentMethod, OrderItem } from "@/lib/types";
+import { createOrder } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
@@ -11,72 +10,41 @@ export async function POST(req: NextRequest) {
     const {
       customer,
       items,
-      subtotal,
-      shippingFee,
       total,
       paymentMethod,
-      razorpayOrderId,
-      razorpayPaymentId,
     }: {
       customer: ShippingAddress;
       items: CartItem[];
-      subtotal: number;
-      shippingFee: number;
       total: number;
       paymentMethod: PaymentMethod;
-      razorpayOrderId?: string;
-      razorpayPaymentId?: string;
     } = body;
 
     if (!customer || !items || items.length === 0) {
       return NextResponse.json({ error: "Invalid order parameters" }, { status: 400 });
     }
 
-    const randomSuffix = Math.floor(1000 + Math.random() * 9000);
-    const orderNumber = `SNY-2026-${randomSuffix}`;
-    const orderId = `ord_${Date.now()}_${randomSuffix}`;
+    const orderItems: OrderItem[] = items.map((item) => ({
+      product_name: `${item.name} (${item.size})`,
+      price: item.price,
+      quantity: item.quantity,
+      size: item.size,
+      image: item.image,
+    }));
 
-    const isPrepaid = paymentMethod === "razorpay";
-    const paymentStatus = isPrepaid ? (razorpayPaymentId ? "PAID" : "PENDING") : "PENDING";
-    const initialOrderStatus = isPrepaid ? (razorpayPaymentId ? "CONFIRMED" : "PENDING") : "CONFIRMED";
-
-    const newOrder: OrderRecord = {
-      id: orderId,
-      orderNumber,
-      createdAt: new Date().toISOString(),
-      customer,
-      items,
-      subtotal,
-      shippingFee,
-      total,
-      paymentMethod,
-      paymentStatus,
-      orderStatus: initialOrderStatus,
-      razorpayOrderId,
-      razorpayPaymentId,
-      estimatedDelivery: new Date(Date.now() + 72 * 3600 * 1000).toLocaleDateString("en-IN", {
-        weekday: "short",
-        day: "numeric",
-        month: "short",
-      }),
+    const orderPayload = {
+      customer_name: customer.fullName,
+      customer_email: customer.email,
+      customer_phone: customer.phone,
+      shipping_address: customer.street,
+      city: customer.city,
+      state: customer.state,
+      pincode: customer.pincode,
+      total_amount: total,
+      payment_method: paymentMethod || "DIRECT_UPI",
+      status: paymentMethod === "COD" ? ("DISPATCHED" as const) : ("PENDING_VERIFICATION" as const),
     };
 
-    // If Cash On Delivery or prepaid already confirmed, dispatch Shiprocket order immediately
-    if (paymentMethod === "cod" || (isPrepaid && razorpayPaymentId)) {
-      try {
-        const shipment = await createShiprocketOrder(newOrder);
-        if (shipment.success) {
-          newOrder.shiprocketOrderId = shipment.orderId;
-          newOrder.shiprocketShipmentId = shipment.shipmentId;
-          newOrder.shiprocketTrackingUrl = shipment.trackingUrl;
-          newOrder.orderStatus = "DISPATCHED";
-        }
-      } catch (shipErr) {
-        console.warn("Automated Shiprocket generation deferred:", shipErr);
-      }
-    }
-
-    await saveOrder(newOrder);
+    const newOrder = await createOrder(orderPayload, orderItems);
 
     return NextResponse.json({
       success: true,
@@ -85,7 +53,7 @@ export async function POST(req: NextRequest) {
   } catch (error: any) {
     console.error("Order creation route error:", error);
     return NextResponse.json(
-      { error: error?.message || "Failed to place order" },
+      { error: error?.message || "Failed to create order" },
       { status: 500 }
     );
   }
