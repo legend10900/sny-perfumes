@@ -118,7 +118,7 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-black py-12 px-4 sm:px-6 lg:px-8 border-b border-zinc-900">
       <div className="max-w-6xl mx-auto">
         {/* Navigation Breadcrumb */}
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <Link
             href="/"
             className="inline-flex items-center gap-2 text-xs uppercase tracking-widest text-zinc-400 hover:text-gold transition-colors"
@@ -127,9 +127,15 @@ export default function CheckoutPage() {
             <span>Return to Collection</span>
           </Link>
 
-          <div className="flex items-center gap-2 text-xs text-zinc-400">
-            <Lock className="w-3.5 h-3.5 text-gold" />
-            <span>256-bit Encrypted Checkout</span>
+          <div className="flex flex-wrap items-center gap-3 text-[11px] text-zinc-400">
+            <span className="text-gold font-medium">📍 Surat, Gujarat</span>
+            <span>•</span>
+            <span>📦 Pan India Delivery</span>
+            <span>•</span>
+            <span className="flex items-center gap-1 text-zinc-300">
+              <Lock className="w-3 h-3 text-gold" />
+              <span>0% Fee Direct UPI & COD</span>
+            </span>
           </div>
         </div>
 

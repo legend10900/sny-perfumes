@@ -214,7 +214,7 @@ export default function CartDrawer() {
 
               <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-400 text-center">
                 <Sparkles className="w-3 h-3 text-gold" />
-                <span>Razorpay Encrypted • COD Available • 100% Quality Guaranteed</span>
+                <span>Direct UPI (0% Fee) • COD Available • 📦 Pan India Delivery from Surat</span>
               </div>
             </div>
           )}

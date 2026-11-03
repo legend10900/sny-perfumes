@@ -1,7 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { Sparkles, ShieldCheck, Truck, Clock, Mail, Phone, MapPin, QrCode } from "lucide-react";
+import { Sparkles, ShieldCheck, Truck, Clock, Mail, Phone, MapPin, Instagram, QrCode } from "lucide-react";
 
 export default function Footer() {
   return (
@@ -23,16 +23,29 @@ export default function Footer() {
             <p className="text-sm font-serif italic text-gold">
               "Wear Your Signature — Scent. Style. Statement."
             </p>
+            <div className="space-y-1 text-xs text-zinc-300 font-medium">
+              <div className="text-gold">✨ Premium • Long Lasting • Unisex</div>
+              <div>👑 Inspired by Luxury</div>
+            </div>
             <p className="text-xs text-zinc-400 max-w-sm leading-relaxed font-light">
-              SNY Perfumes redefines modern luxury by combining authentic French perfume oils with obsessive attention to sillage and longevity. Formulated for connoisseurs who refuse to blend in.
+              Crafted in <strong>Surat, Gujarat</strong> using authentic French perfume oils at high concentrations (25% - 35% Extrait De Parfum). Beast-mode longevity and room-commanding sillage delivered across India.
             </p>
-            <div className="flex items-center gap-2 text-zinc-300 text-xs pt-1">
-              <Sparkles className="w-4 h-4 text-gold" />
-              <span>Extrait De Parfum (35% French Fragrance Oils)</span>
+
+            {/* Instagram Link Badge */}
+            <div className="pt-2">
+              <a
+                href="https://www.instagram.com/sny_perfumes"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-zinc-900 hover:bg-gold hover:text-black border border-gold/40 text-gold text-xs font-semibold tracking-wider transition-all duration-300 shadow-sm"
+              >
+                <Instagram className="w-4 h-4" />
+                <span>Www.instagram.com/sny_perfumes</span>
+              </a>
             </div>
           </div>
 
-          {/* Quick Links */}
+          {/* Column 2: The Collection */}
           <div className="space-y-3">
             <h4 className="text-xs uppercase tracking-[0.2em] font-semibold text-white">
               The Collection
@@ -59,64 +72,101 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
-                <Link href="/#bundles" className="hover:text-gold transition-colors">
-                  Discovery Set (4x 8ml)
+                <Link href="/#scents" className="hover:text-gold transition-colors">
+                  Rush 7 (Fresh Spicy Citrus)
+                </Link>
+              </li>
+              <li>
+                <Link href="/#bundles" className="hover:text-gold transition-colors text-gold">
+                  Special Bundles & Offers
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Customer Care */}
+          {/* Column 3: Customer Care & Company */}
           <div className="space-y-3">
             <h4 className="text-xs uppercase tracking-[0.2em] font-semibold text-white">
               Customer Care
             </h4>
             <ul className="space-y-2">
               <li>
+                <Link href="/about" className="hover:text-gold transition-colors">
+                  About Us
+                </Link>
+              </li>
+              <li>
+                <Link href="/customer-care" className="hover:text-gold transition-colors text-zinc-300 font-medium">
+                  Customer Care & Concierge
+                </Link>
+              </li>
+              <li>
                 <Link href="/track-order" className="hover:text-gold transition-colors flex items-center gap-1.5 text-gold">
                   <Truck className="w-3.5 h-3.5" />
                   <span>Track Your Order</span>
                 </Link>
               </li>
-              <li>
-                <a href="#scents" className="hover:text-gold transition-colors">
-                  Olfactory Notes Guide
-                </a>
+              <li className="flex items-center gap-1.5 text-zinc-300">
+                <MapPin className="w-3.5 h-3.5 text-gold" />
+                <span>📍 Surat, Gujarat</span>
               </li>
-              <li>
-                <span className="text-zinc-500">Shipping & Delivery (Shiprocket)</span>
-              </li>
-              <li>
-                <span className="text-zinc-500">Authenticity Guarantee</span>
-              </li>
-              <li>
-                <span className="text-zinc-500">Terms of Service & Privacy</span>
+              <li className="flex items-center gap-1.5 text-zinc-300">
+                <Truck className="w-3.5 h-3.5 text-gold" />
+                <span>📦 Pan India Delivery</span>
               </li>
             </ul>
           </div>
 
-          {/* Contact & Atelier */}
+          {/* Column 4: Policies & Legal */}
           <div className="space-y-3">
             <h4 className="text-xs uppercase tracking-[0.2em] font-semibold text-white">
-              SNY Atelier
+              Policies & Legal
             </h4>
-            <div className="space-y-2.5 text-xs text-zinc-400">
-              <div className="flex items-start gap-2">
-                <MapPin className="w-3.5 h-3.5 text-gold flex-shrink-0 mt-0.5" />
-                <span>SNY Perfumes Atelier, Mumbai, India</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Mail className="w-3.5 h-3.5 text-gold flex-shrink-0" />
-                <span>concierge@snyperfumes.com</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Phone className="w-3.5 h-3.5 text-gold flex-shrink-0" />
-                <span>+91 98765 43210 (10 AM - 7 PM)</span>
-              </div>
-              <div className="pt-2 text-[11px] text-zinc-500">
-                Payment: Direct UPI QR (0% Fee) • GPay • PhonePe • Paytm • Cash on Delivery (COD)
-              </div>
-            </div>
+            <ul className="space-y-2">
+              <li>
+                <Link href="/policy#shipping" className="hover:text-gold transition-colors">
+                  Shipping & Delivery Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/policy#returns" className="hover:text-gold transition-colors">
+                  Returns & Replacements
+                </Link>
+              </li>
+              <li>
+                <Link href="/policy#privacy" className="hover:text-gold transition-colors">
+                  Customer Privacy Policy
+                </Link>
+              </li>
+              <li>
+                <Link href="/terms" className="hover:text-gold transition-colors">
+                  Terms and Conditions
+                </Link>
+              </li>
+              <li>
+                <Link href="/admin/orders" className="text-zinc-600 hover:text-zinc-400 transition-colors">
+                  Atelier Dispatch Portal
+                </Link>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        {/* Contact Strip */}
+        <div className="mt-12 pt-8 border-t border-zinc-900 grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs text-zinc-400">
+          <div className="flex items-center gap-2">
+            <MapPin className="w-4 h-4 text-gold flex-shrink-0" />
+            <span>Atelier & Dispatch: Surat, Gujarat, India</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Mail className="w-4 h-4 text-gold flex-shrink-0" />
+            <span>concierge@snyperfumes.com</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <Instagram className="w-4 h-4 text-gold flex-shrink-0" />
+            <a href="https://www.instagram.com/sny_perfumes" target="_blank" rel="noopener noreferrer" className="hover:text-gold">
+              @sny_perfumes
+            </a>
           </div>
         </div>
       </div>
@@ -125,14 +175,16 @@ export default function Footer() {
       <div className="border-t border-zinc-900 bg-zinc-950 py-6">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-[11px] text-zinc-500">
           <div>
-            © {new Date().getFullYear()} SNY PERFUMES. All rights reserved. Haute Parfumerie.
+            © {new Date().getFullYear()} SNY PERFUMES. All rights reserved. Surat, Gujarat, India.
           </div>
-          <div className="flex items-center gap-6">
-            <span>French Fragrance Formulation</span>
+          <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-6">
+            <span>Premium • Long Lasting • Unisex</span>
             <span>•</span>
-            <span>Automated Shiprocket Logistics</span>
+            <span>📍 Surat, Gujarat</span>
             <span>•</span>
-            <span>Zero-Fee Direct UPI & COD</span>
+            <span>📦 Pan India Delivery</span>
+            <span>•</span>
+            <span>0% Fee Direct UPI & COD</span>
           </div>
         </div>
       </div>

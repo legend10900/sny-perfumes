@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-import { ShoppingBag, Truck, Sparkles, Menu, X } from "lucide-react";
+import { ShoppingBag, Truck, Sparkles, Menu, X, Instagram, MapPin } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 
 export default function Navbar() {
@@ -29,9 +29,15 @@ export default function Navbar() {
     <>
       {/* Top Announcement Bar */}
       <div className="bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 border-b border-gold/20 py-1.5 px-4 text-center text-xs tracking-wider text-zinc-300">
-        <span className="inline-flex items-center gap-2">
+        <span className="inline-flex items-center gap-2 flex-wrap justify-center">
           <Sparkles className="w-3.5 h-3.5 text-gold animate-pulse" />
-          <span>FRENCH PERFUME OILS • 12+ HOURS LONGEVITY • FREE EXPRESS DELIVERY OVER ₹600</span>
+          <span className="text-gold font-medium">PREMIUM • LONG LASTING • UNISEX</span>
+          <span className="text-zinc-600 hidden sm:inline">•</span>
+          <span className="hidden sm:inline">📍 Surat, Gujarat</span>
+          <span className="text-zinc-600 hidden sm:inline">•</span>
+          <span>📦 Pan India Delivery</span>
+          <span className="text-zinc-600 hidden md:inline">•</span>
+          <span className="hidden md:inline">FREE EXPRESS OVER ₹600</span>
           <Sparkles className="w-3.5 h-3.5 text-gold animate-pulse" />
         </span>
       </div>
@@ -69,7 +75,7 @@ export default function Navbar() {
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-8 text-xs uppercase tracking-[0.2em] font-medium text-zinc-300">
+          <nav className="hidden lg:flex items-center gap-7 text-xs uppercase tracking-[0.18em] font-medium text-zinc-300">
             <Link
               href="/#scents"
               className="hover:text-gold transition-colors duration-200 relative group py-1"
@@ -88,7 +94,25 @@ export default function Navbar() {
               href="/#bundles"
               className="hover:text-gold transition-colors duration-200 relative group py-1"
             >
-              Discovery Sets
+              Special Offers
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gold transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+            <Link
+              href="/about"
+              className={`hover:text-gold transition-colors duration-200 relative group py-1 ${
+                pathname === "/about" ? "text-gold font-semibold" : ""
+              }`}
+            >
+              About Us
+              <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gold transition-all duration-300 group-hover:w-full"></span>
+            </Link>
+            <Link
+              href="/policy"
+              className={`hover:text-gold transition-colors duration-200 relative group py-1 ${
+                pathname === "/policy" ? "text-gold font-semibold" : ""
+              }`}
+            >
+              Policy
               <span className="absolute bottom-0 left-0 w-0 h-0.5 bg-gold transition-all duration-300 group-hover:w-full"></span>
             </Link>
             <Link
@@ -103,10 +127,22 @@ export default function Navbar() {
           </nav>
 
           {/* Right Action Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Instagram Link Button */}
+            <a
+              href="https://www.instagram.com/sny_perfumes"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 sm:p-2.5 rounded-full bg-zinc-900/90 border border-zinc-800 hover:border-gold/60 text-zinc-300 hover:text-gold transition-all duration-300 shadow-sm"
+              title="Instagram: @sny_perfumes"
+              aria-label="Follow SNY Perfumes on Instagram"
+            >
+              <Instagram className="w-4 h-4 sm:w-4.5 sm:h-4.5" />
+            </a>
+
             <Link
               href="/track-order"
-              className="hidden sm:flex md:hidden items-center gap-1.5 text-xs text-zinc-400 hover:text-gold p-2"
+              className="hidden sm:flex lg:hidden items-center gap-1.5 text-xs text-zinc-400 hover:text-gold p-2"
               title="Track Order"
             >
               <Truck className="w-5 h-5 text-gold" />
@@ -129,36 +165,93 @@ export default function Navbar() {
 
         {/* Mobile Dropdown Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden bg-zinc-950 border-b border-zinc-800 px-6 py-6 space-y-4 animate-in slide-in-from-top duration-300">
+          <div className="md:hidden bg-zinc-950 border-b border-zinc-800 px-6 py-6 space-y-3 animate-in slide-in-from-top duration-300 max-h-[85vh] overflow-y-auto">
+            {/* Brand Pill */}
+            <div className="p-3 rounded-2xl bg-zinc-900/90 border border-gold/30 text-xs text-zinc-300 space-y-1">
+              <div className="text-gold font-semibold uppercase tracking-wider text-[11px]">
+                SNY PERFUMES
+              </div>
+              <div className="text-[11px] text-zinc-400">
+                Premium • Long Lasting • Unisex | Inspired by Luxury
+              </div>
+              <div className="flex items-center gap-3 text-[10px] text-zinc-400 pt-1">
+                <span>📍 Surat, Gujarat</span>
+                <span>•</span>
+                <span>📦 Pan India Delivery</span>
+              </div>
+            </div>
+
             <Link
               href="/#scents"
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm uppercase tracking-widest text-zinc-300 hover:text-gold py-2 border-b border-zinc-900"
+              className="block text-xs uppercase tracking-widest text-zinc-300 hover:text-gold py-2.5 border-b border-zinc-900"
             >
               All Scents
             </Link>
             <Link
               href="/#bestsellers"
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm uppercase tracking-widest text-zinc-300 hover:text-gold py-2 border-b border-zinc-900"
+              className="block text-xs uppercase tracking-widest text-zinc-300 hover:text-gold py-2.5 border-b border-zinc-900"
             >
               Best Sellers
             </Link>
             <Link
               href="/#bundles"
               onClick={() => setMobileMenuOpen(false)}
-              className="block text-sm uppercase tracking-widest text-zinc-300 hover:text-gold py-2 border-b border-zinc-900"
+              className="block text-xs uppercase tracking-widest text-zinc-300 hover:text-gold py-2.5 border-b border-zinc-900"
             >
-              Special Bundles & Discovery
+              Special Bundles & Offers
+            </Link>
+            <Link
+              href="/about"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-xs uppercase tracking-widest text-zinc-300 hover:text-gold py-2.5 border-b border-zinc-900"
+            >
+              About Us
+            </Link>
+            <Link
+              href="/customer-care"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-xs uppercase tracking-widest text-zinc-300 hover:text-gold py-2.5 border-b border-zinc-900"
+            >
+              Customer Care
+            </Link>
+            <Link
+              href="/policy"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-xs uppercase tracking-widest text-zinc-300 hover:text-gold py-2.5 border-b border-zinc-900"
+            >
+              Policy (Shipping, Returns, Privacy)
+            </Link>
+            <Link
+              href="/terms"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block text-xs uppercase tracking-widest text-zinc-300 hover:text-gold py-2.5 border-b border-zinc-900"
+            >
+              Terms and Conditions
             </Link>
             <Link
               href="/track-order"
               onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center gap-2 text-sm uppercase tracking-widest text-gold py-2"
+              className="flex items-center gap-2 text-xs uppercase tracking-widest text-gold py-2.5 border-b border-zinc-900"
             >
               <Truck className="w-4 h-4 text-gold" />
               <span>Track Order</span>
             </Link>
+
+            {/* Instagram Mobile Button */}
+            <div className="pt-2">
+              <a
+                href="https://www.instagram.com/sny_perfumes"
+                target="_blank"
+                rel="noopener noreferrer"
+                onClick={() => setMobileMenuOpen(false)}
+                className="w-full py-3 px-4 rounded-xl gold-gradient-bg text-black font-semibold text-xs uppercase tracking-wider flex items-center justify-center gap-2 shadow-sm"
+              >
+                <Instagram className="w-4 h-4" />
+                <span>Www.instagram.com/sny_perfumes</span>
+              </a>
+            </div>
           </div>
         )}
       </header>

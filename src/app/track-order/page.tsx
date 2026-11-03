@@ -264,6 +264,27 @@ function TrackOrderContent() {
             </div>
           </div>
         )}
+
+        {/* Customer Care Reassurance Card */}
+        <div className="p-6 rounded-2xl bg-zinc-950 border border-zinc-800 text-center space-y-2">
+          <div className="text-xs text-zinc-300 font-medium">
+            SNY PERFUMES • Premium • Long Lasting • Unisex
+          </div>
+          <div className="flex flex-wrap items-center justify-center gap-4 text-xs text-zinc-400">
+            <span>📍 Surat, Gujarat</span>
+            <span>•</span>
+            <span>📦 Pan India Delivery</span>
+            <span>•</span>
+            <a
+              href="https://www.instagram.com/sny_perfumes"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-gold hover:underline"
+            >
+              Instagram: Www.instagram.com/sny_perfumes
+            </a>
+          </div>
+        </div>
       </div>
     </div>
   );
