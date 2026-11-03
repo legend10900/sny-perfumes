@@ -15,7 +15,7 @@ export const PRODUCTS: Product[] = [
     reviewCount: 312,
     accentColor: "#f59e0b",
     image: "/branding/titan-aura.jpg",
-    secondaryImage: "/branding/titan-aura-alt.jpg",
+    secondaryImage: "/branding/titan-aura-macro.jpg",
     badges: ["Best Seller", "Strong Projection", "Long Lasting"],
     gender: "Men",
     notes: {
@@ -42,6 +42,7 @@ export const PRODUCTS: Product[] = [
     reviewCount: 247,
     accentColor: "#38bdf8",
     image: "/branding/aqua-tide.jpg",
+    secondaryImage: "/branding/aqua-tide-macro.jpg",
     badges: ["Aquatic Fresh", "Strong Projection", "Summer Essential"],
     gender: "Unisex",
     notes: {
@@ -68,6 +69,7 @@ export const PRODUCTS: Product[] = [
     reviewCount: 428,
     accentColor: "#c084fc",
     image: "/branding/midnight-oud.jpg",
+    secondaryImage: "/branding/hero-model.jpg",
     badges: ["Signature Scent", "Rich Oud", "Long Lasting"],
     gender: "Unisex",
     notes: {
@@ -93,7 +95,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewCount: 184,
     accentColor: "#d97706",
-    image: "https://images.unsplash.com/photo-1547887537-6158d64c35b3?q=80&w=1200&auto=format&fit=crop",
+    image: "/branding/silk-oud.jpg",
     badges: ["Liquid Luxury", "Strong Projection", "Long Lasting"],
     gender: "Unisex",
     notes: {
@@ -119,7 +121,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.8,
     reviewCount: 196,
     accentColor: "#a855f7",
-    image: "https://images.unsplash.com/photo-1523293182086-7651a899d37f?q=80&w=1200&auto=format&fit=crop",
+    image: "/branding/shadow-lust.jpg",
     badges: ["Date Night", "Sweet & Smoky", "High Projection"],
     gender: "Men",
     notes: {
@@ -145,7 +147,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.9,
     reviewCount: 220,
     accentColor: "#f472b6",
-    image: "https://images.unsplash.com/photo-1588405748880-12d1d2a59f75?q=80&w=1200&auto=format&fit=crop",
+    image: "/branding/floral-desire.jpg",
     badges: ["Sensual Bloom", "Romantic", "Long Lasting"],
     gender: "Women",
     notes: {
@@ -172,6 +174,7 @@ export const PRODUCTS: Product[] = [
     reviewCount: 289,
     accentColor: "#eab308",
     image: "/branding/arabian-gold.jpg",
+    secondaryImage: "/branding/arabian-gold-poster.jpg",
     badges: ["Royal Heritage", "Extrait Strength", "Long Lasting"],
     gender: "Unisex",
     notes: {
@@ -197,7 +200,7 @@ export const PRODUCTS: Product[] = [
     rating: 4.8,
     reviewCount: 175,
     accentColor: "#d97706",
-    image: "https://images.unsplash.com/photo-1592945403244-b3fbafd7f539?q=80&w=1200&auto=format&fit=crop",
+    image: "/branding/signature.jpg",
     badges: ["Gentleman's Choice", "Versatile", "Long Lasting"],
     gender: "Men",
     notes: {
@@ -224,6 +227,7 @@ export const PRODUCTS: Product[] = [
     reviewCount: 203,
     accentColor: "#ef4444",
     image: "/branding/red-aura.jpg",
+    secondaryImage: "/branding/red-aura-macro.jpg",
     badges: ["Passion & Power", "Intense Sillage", "Long Lasting"],
     gender: "Unisex",
     notes: {
@@ -250,6 +254,7 @@ export const PRODUCTS: Product[] = [
     reviewCount: 310,
     accentColor: "#2563eb",
     image: "/branding/blue-aura.jpg",
+    secondaryImage: "/branding/blue-aura-poster.jpg",
     badges: ["Fresh & Confident", "Timeless Sillage", "All Occasions"],
     gender: "Unisex",
     notes: {
@@ -276,6 +281,7 @@ export const PRODUCTS: Product[] = [
     reviewCount: 198,
     accentColor: "#ec4899",
     image: "/branding/secret-petals.jpg",
+    secondaryImage: "/branding/secret-petals-poster.jpg",
     badges: ["Sweet & Flirty", "Addictive Floral", "Everyday Luxury"],
     gender: "Women",
     notes: {
@@ -302,6 +308,7 @@ export const PRODUCTS: Product[] = [
     reviewCount: 388,
     accentColor: "#ea580c",
     image: "/branding/asphalt.jpg",
+    secondaryImage: "/branding/asphalt-poster.jpg",
     badges: ["Signature Edition", "Raw Leather", "Beast Mode"],
     gender: "Unisex",
     notes: {
@@ -328,6 +335,7 @@ export const PRODUCTS: Product[] = [
     reviewCount: 264,
     accentColor: "#22c55e",
     image: "/branding/rush-7.jpg",
+    secondaryImage: "/branding/rush-7-macro.jpg",
     badges: ["New Energy", "Fresh & Invigorating", "Strong Projection"],
     gender: "Unisex",
     notes: {
@@ -343,6 +351,68 @@ export const PRODUCTS: Product[] = [
 ];
 
 export const SPECIAL_BUNDLES: SpecialBundle[] = [
+  {
+    id: "offer-2x30ml",
+    title: "2x 30ml + Free 8ml Gift Bottle",
+    badge: "Official Special Offer",
+    price: 599,
+    originalPrice: 1098,
+    savings: "Save ₹499 (45% OFF)",
+    description: "Buy any 2 perfumes (30ml) and get 1 complimentary luxury 8ml travel flacon free. Over 900+ sprays total.",
+    features: [
+      "2x 30ml Full Perfumes (Any Fragrance)",
+      "1x 8ml Pocket Flacon FREE",
+      "French Imported Extrait Formulation",
+      "Free Express Courier via Shiprocket",
+    ],
+    popular: true,
+  },
+  {
+    id: "offer-2x50ml",
+    title: "2x 50ml + 2 Free 8ml Gift Bottles",
+    badge: "Collector's Special",
+    price: 799,
+    originalPrice: 1598,
+    savings: "Save ₹799 (50% OFF)",
+    description: "Buy any 2 perfumes (50ml) and get 2 complimentary luxury 8ml travel flacons free. Massive savings and projection.",
+    features: [
+      "2x 50ml Luxury Flacons",
+      "2x 8ml Pocket Flacons FREE",
+      "Instant Free Delivery Across India",
+      "Handcrafted Magnetic Presentation Box",
+    ],
+  },
+  {
+    id: "offer-100ml-discovery",
+    title: "1x 100ml + FREE Discovery Set",
+    badge: "Ultimate Prestige Vault",
+    price: 999,
+    originalPrice: 1898,
+    savings: "Save ₹899 (47% OFF)",
+    description: "Buy any 1 full-size 100ml perfume (Rush 7 or Blue Aura) and receive the complete 4-vial Discovery Set 100% free.",
+    features: [
+      "1x 100ml Masterpiece Flacon",
+      "FREE 4x 8ml Discovery Box Included (₹399 value)",
+      "VIP Direct Concierge Support",
+      "Free Express Courier with Live Shiprocket Tracking",
+    ],
+    popular: true,
+  },
+  {
+    id: "discovery-set",
+    title: "Discovery Box (4x 8ml)",
+    badge: "Zero Risk Exploration",
+    price: 399,
+    originalPrice: 699,
+    savings: "Save ₹300 (43% OFF)",
+    description: "Can't decide? Experience 4 iconic masterworks (Titan Aura, Midnight Oud, Aqua Tide, Asphalt) in travel spray atomizers.",
+    features: [
+      "4x 8ml Luxury Atomizers (32ml Total)",
+      "Includes ₹200 Coupon for Full Bottle",
+      "Ideal for Gifting & Travel Kits",
+      "Detailed Olfactory Note Cards",
+    ],
+  },
   {
     id: "single-30ml",
     title: "Signature 30ml Edition",
@@ -372,52 +442,5 @@ export const SPECIAL_BUNDLES: SpecialBundle[] = [
       "All-day Uncompromising Projection",
       "Free Velvet Storage Pouch Included",
     ],
-    popular: true,
-  },
-  {
-    id: "duo-pack-30ml",
-    title: "Signature Duo (2x 30ml)",
-    badge: "Bestseller Deal",
-    price: 600,
-    originalPrice: 998,
-    savings: "Save ₹398 (40% OFF)",
-    description: "Choose any two 30ml perfumes (e.g., Midnight Oud + Titan Aura) to switch between Day Freshness and Night Dominance.",
-    features: [
-      "2x 30ml Full Fragrances (Any choice)",
-      "Instant Free Delivery Included",
-      "Day + Night Layering Guide",
-      "Luxury Gold Gift Box Packaging",
-    ],
-  },
-  {
-    id: "duo-pack-50ml",
-    title: "Executive Duo (2x 50ml)",
-    badge: "Collector's Vault",
-    price: 800,
-    originalPrice: 1398,
-    savings: "Save ₹598 (43% OFF)",
-    description: "Two 50ml flacons of pure luxury. Ideal for personal vault curation or gifting the ultimate olfactory statement.",
-    features: [
-      "2x 50ml Luxury Flacons",
-      "Free Express Courier via Shiprocket",
-      "Two Free 2ml Tester Vials",
-      "Handcrafted Magnetic Gift Box",
-    ],
-  },
-  {
-    id: "discovery-set",
-    title: "Discovery Box (4x 8ml)",
-    badge: "Zero Risk Exploration",
-    price: 399,
-    originalPrice: 699,
-    savings: "Save ₹300 (43% OFF)",
-    description: "Can't decide? Experience 4 iconic fragrances (Titan Aura, Midnight Oud, Aqua Tide, Asphalt) in travel spray atomizers.",
-    features: [
-      "4x 8ml Luxury Atomizers (32ml Total)",
-      "Includes ₹200 Coupon for Full Bottle",
-      "Ideal for Gifting & Travel Kits",
-      "Detailed Olfactory Note Cards",
-    ],
-    popular: true,
   },
 ];

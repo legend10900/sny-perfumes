@@ -1,11 +1,53 @@
 "use client";
 
-import React from "react";
+import React, { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Sparkles, Clock, Volume2, ShieldCheck, ArrowRight, Award } from "lucide-react";
 
+const AMBASSADORS = [
+  {
+    id: "midnight-oud",
+    name: "Midnight Oud",
+    tagline: "A Fragrance Beyond Time",
+    notes: "Saffron • Oud • Amber",
+    price: "₹349",
+    image: "/branding/hero-model.jpg",
+    accent: "#c084fc",
+  },
+  {
+    id: "titan-aura",
+    name: "Titan Aura",
+    tagline: "Strength in Every Scent",
+    notes: "Pineapple • Birch • Ambergris",
+    price: "₹349",
+    image: "/branding/hero-titan-model.jpg",
+    accent: "#f59e0b",
+  },
+  {
+    id: "aqua-tide",
+    name: "Aqua Tide",
+    tagline: "Freshness That Moves With You",
+    notes: "Marine Accord • Lavender • Cedarwood",
+    price: "₹349",
+    image: "/branding/hero-aqua-model.jpg",
+    accent: "#38bdf8",
+  },
+];
+
 export default function Hero() {
+  const [activeAmbassador, setActiveAmbassador] = useState(0);
+
+  // Gentle auto-rotation
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActiveAmbassador((prev) => (prev + 1) % AMBASSADORS.length);
+    }, 6000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const current = AMBASSADORS[activeAmbassador];
+
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden bg-black py-16 lg:py-24 border-b border-zinc-900">
       {/* Ambient background gold glow spheres */}
@@ -97,11 +139,16 @@ export default function Hero() {
             </div>
           </div>
 
-          {/* Right Column: Framed portrait showcasing brand ambassador holding Midnight Oud */}
-          <div className="lg:col-span-5 flex justify-center relative">
+          {/* Right Column: Framed portrait showcasing brand ambassadors */}
+          <div className="lg:col-span-5 flex flex-col items-center justify-center relative">
             <div className="relative w-full max-w-[420px] group">
               {/* Glowing ambient background lighting */}
-              <div className="absolute -inset-4 bg-gradient-to-tr from-gold/30 via-amber-500/20 to-purple-900/20 rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition-opacity duration-700 animate-pulseGlow" />
+              <div
+                className="absolute -inset-4 rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition-opacity duration-700 animate-pulseGlow"
+                style={{
+                  background: `radial-gradient(circle, ${current.accent}44 0%, transparent 70%)`,
+                }}
+              />
 
               {/* Framed luxury container */}
               <div className="relative rounded-2xl overflow-hidden bg-zinc-950 border-2 border-gold/40 shadow-2xl transition-all duration-500 group-hover:border-gold/80">
@@ -114,8 +161,9 @@ export default function Hero() {
                 {/* Hero Image */}
                 <div className="relative aspect-[3/4] w-full overflow-hidden">
                   <Image
-                    src="/branding/hero-model.jpg"
-                    alt="SNY Brand Ambassador holding Midnight Oud"
+                    key={current.image}
+                    src={current.image}
+                    alt={`SNY Ambassador showcasing ${current.name}`}
                     fill
                     priority
                     className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
@@ -133,24 +181,41 @@ export default function Hero() {
                         ICONIC FORMULATION
                       </div>
                       <div className="text-base font-serif font-bold text-white tracking-wide mt-0.5">
-                        Midnight Oud • Extrait
+                        {current.name} • Extrait
                       </div>
                       <div className="text-[11px] text-zinc-300 flex items-center gap-2 mt-1">
-                        <span>Saffron • Oud • Amber</span>
+                        <span>{current.notes}</span>
                         <span className="text-gold">•</span>
-                        <span className="text-gold font-semibold">₹349</span>
+                        <span className="text-gold font-semibold">{current.price}</span>
                       </div>
                     </div>
 
                     <a
                       href="#scents"
                       className="p-2.5 rounded-full bg-gold/20 hover:bg-gold text-gold hover:text-black transition-colors"
-                      title="Explore Midnight Oud"
+                      title={`Explore ${current.name}`}
                     >
                       <ArrowRight className="w-4 h-4" />
                     </a>
                   </div>
                 </div>
+              </div>
+
+              {/* Ambassador Switcher Tabs */}
+              <div className="flex items-center justify-center gap-2 mt-4">
+                {AMBASSADORS.map((item, idx) => (
+                  <button
+                    key={item.id}
+                    onClick={() => setActiveAmbassador(idx)}
+                    className={`px-3 py-1 rounded-full text-[11px] font-medium transition-all ${
+                      activeAmbassador === idx
+                        ? "bg-gold text-black font-semibold shadow-gold-glow scale-105"
+                        : "bg-zinc-900 border border-zinc-800 text-zinc-400 hover:text-white"
+                    }`}
+                  >
+                    {item.name}
+                  </button>
+                ))}
               </div>
             </div>
           </div>

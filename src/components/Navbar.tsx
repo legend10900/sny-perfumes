@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { ShoppingBag, Truck, Sparkles, Menu, X } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
@@ -54,19 +55,17 @@ export default function Navbar() {
           </button>
 
           {/* Brand Logo */}
-          <Link href="/" className="flex flex-col items-center group">
-            <div className="flex items-center gap-2">
-              <span className="text-xl md:text-2xl font-serif tracking-[0.25em] font-semibold text-white group-hover:text-gold transition-colors">
-                SNY
-              </span>
-              <span className="w-1.5 h-1.5 rounded-full bg-gold inline-block animate-pulse"></span>
-              <span className="text-xs md:text-sm tracking-[0.3em] font-light text-gold uppercase">
-                PERFUMES
-              </span>
+          <Link href="/" className="flex items-center group py-0.5">
+            <div className="relative h-9 md:h-11 w-32 md:w-36 overflow-hidden">
+              <Image
+                src="/branding/sny-logo.jpg"
+                alt="SNY Perfumes"
+                fill
+                priority
+                className="object-contain object-left group-hover:scale-105 transition-transform duration-300"
+                sizes="(max-width: 768px) 130px, 150px"
+              />
             </div>
-            <span className="text-[9px] tracking-[0.28em] text-zinc-500 uppercase font-sans mt-0.5 group-hover:text-zinc-400 transition-colors">
-              HAUTE PARFUMERIE
-            </span>
           </Link>
 
           {/* Desktop Navigation */}

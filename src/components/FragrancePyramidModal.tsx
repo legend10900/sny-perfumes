@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { X, Sparkles, Clock, ShieldCheck, Flame, ShoppingBag } from "lucide-react";
+import { X, Sparkles, Clock, ShieldCheck, Flame, ShoppingBag, Eye } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { Product } from "@/lib/types";
 
@@ -10,6 +10,7 @@ export default function FragrancePyramidModal() {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const { selectedProductForModal, closeProductModal, addItem } = useCartStore();
   const [selectedSize, setSelectedSize] = useState<"30ml" | "50ml">("30ml");
+  const [activeImageIndex, setActiveImageIndex] = useState<0 | 1>(0);
 
   const product = selectedProductForModal;
 
@@ -19,6 +20,7 @@ export default function FragrancePyramidModal() {
     if (!dialog) return;
 
     if (product) {
+      setActiveImageIndex(0);
       if (!dialog.open) {
         dialog.showModal();
       }
@@ -29,7 +31,7 @@ export default function FragrancePyramidModal() {
     }
   }, [product]);
 
-  // Fallback for browsers lacking native `closedby="any"` support
+  // Fallback for click outside
   useEffect(() => {
     const dialog = dialogRef.current;
     if (!dialog) return;
@@ -66,6 +68,11 @@ export default function FragrancePyramidModal() {
   const currentPrice = selectedSize === "30ml" ? product.price30ml : product.price50ml;
   const currentOriginalPrice = selectedSize === "30ml" ? product.originalPrice30ml : product.originalPrice50ml;
 
+  const currentImage =
+    activeImageIndex === 1 && product.secondaryImage
+      ? product.secondaryImage
+      : product.image;
+
   const handleAddToCart = () => {
     addItem({
       id: `${product.id}-${selectedSize}`,
@@ -95,7 +102,7 @@ export default function FragrancePyramidModal() {
             style={{ backgroundColor: product.accentColor }}
           />
           <span className="text-xs uppercase tracking-[0.25em] text-gold font-medium">
-            OLFACTORY ARCHITECTURE & NOTES
+            OLFACTORY ARCHITECTURE & DETAILS
           </span>
         </div>
 
@@ -109,19 +116,47 @@ export default function FragrancePyramidModal() {
       </div>
 
       <div className="p-6 md:p-8 space-y-8 max-h-[80vh] overflow-y-auto">
-        {/* Product Snapshot */}
+        {/* Product Snapshot & Dual Media Gallery */}
         <div className="flex flex-col sm:flex-row items-center gap-6">
-          <div className="relative w-28 h-36 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 flex-shrink-0">
-            <Image
-              src={product.image}
-              alt={product.name}
-              fill
-              className="object-cover"
-              sizes="112px"
-            />
+          <div className="flex flex-col items-center gap-2 flex-shrink-0">
+            <div className="relative w-32 h-44 rounded-2xl overflow-hidden bg-zinc-900 border border-zinc-800 shadow-xl">
+              <Image
+                src={currentImage}
+                alt={product.name}
+                fill
+                className="object-cover transition-all duration-500"
+                sizes="128px"
+              />
+            </div>
+
+            {/* Thumbnail toggle if secondary image exists */}
+            {product.secondaryImage && (
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setActiveImageIndex(0)}
+                  className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all ${
+                    activeImageIndex === 0
+                      ? "bg-gold text-black font-semibold"
+                      : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-white"
+                  }`}
+                >
+                  Poster
+                </button>
+                <button
+                  onClick={() => setActiveImageIndex(1)}
+                  className={`px-2 py-0.5 rounded text-[10px] font-medium transition-all ${
+                    activeImageIndex === 1
+                      ? "bg-gold text-black font-semibold"
+                      : "bg-zinc-900 text-zinc-400 border border-zinc-800 hover:text-white"
+                  }`}
+                >
+                  Macro
+                </button>
+              </div>
+            )}
           </div>
 
-          <div className="space-y-2 text-center sm:text-left">
+          <div className="space-y-2 text-center sm:text-left flex-1">
             <div className="text-xs font-medium uppercase tracking-wider text-zinc-400">
               Inspired by <span className="text-zinc-200 font-semibold">{product.inspiredBy}</span>
             </div>

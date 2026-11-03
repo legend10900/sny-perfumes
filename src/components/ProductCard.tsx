@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Image from "next/image";
-import { ShoppingBag, Sparkles, Layers, Star } from "lucide-react";
+import { ShoppingBag, Layers, Star, Eye } from "lucide-react";
 import { Product } from "@/lib/types";
 import { useCartStore } from "@/store/cartStore";
 
@@ -12,6 +12,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const [selectedSize, setSelectedSize] = useState<"30ml" | "50ml">("30ml");
+  const [isHovered, setIsHovered] = useState(false);
   const { addItem, openProductModal } = useCartStore();
 
   const currentPrice = selectedSize === "30ml" ? product.price30ml : product.price50ml;
@@ -35,9 +36,13 @@ export default function ProductCard({ product }: ProductCardProps) {
     openProductModal(product);
   };
 
+  const displayedImage = isHovered && product.secondaryImage ? product.secondaryImage : product.image;
+
   return (
     <div
       onClick={handleOpenPyramid}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
       className="group relative rounded-3xl bg-zinc-950 border border-zinc-800/80 hover:border-gold/60 transition-all duration-500 overflow-hidden flex flex-col justify-between cursor-pointer hover:shadow-2xl hover:shadow-black"
     >
       {/* Ambient hover glow using product accent color */}
@@ -49,10 +54,10 @@ export default function ProductCard({ product }: ProductCardProps) {
       {/* Top Media Container */}
       <div className="relative aspect-[4/5] w-full overflow-hidden bg-zinc-900">
         <Image
-          src={product.image}
+          src={displayedImage}
           alt={`${product.name} luxury perfume bottle`}
           fill
-          className="object-cover object-center group-hover:scale-105 transition-transform duration-700"
+          className="object-cover object-center group-hover:scale-105 transition-all duration-700"
           sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
         />
 
@@ -83,17 +88,26 @@ export default function ProductCard({ product }: ProductCardProps) {
               handleOpenPyramid();
             }}
             className="p-2 rounded-full bg-black/60 backdrop-blur-md border border-white/20 text-zinc-300 hover:text-gold hover:border-gold/50 transition-all shadow-md group/btn"
-            title="View Olfactory Notes Pyramid"
+            title="View Olfactory Notes Pyramid & Details"
           >
             <Layers className="w-3.5 h-3.5 group-hover/btn:scale-110 transition-transform" />
           </button>
         </div>
 
-        {/* Floating Rating Pill */}
-        <div className="absolute bottom-3 left-3 z-10 flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[11px] text-zinc-200">
-          <Star className="w-3 h-3 text-gold fill-gold" />
-          <span className="font-semibold text-white">{product.rating}</span>
-          <span className="text-zinc-400">({product.reviewCount})</span>
+        {/* Floating Rating & Macro Indicator */}
+        <div className="absolute bottom-3 left-3 right-3 z-10 flex items-center justify-between pointer-events-none">
+          <div className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-black/70 backdrop-blur-md border border-white/10 text-[11px] text-zinc-200">
+            <Star className="w-3 h-3 text-gold fill-gold" />
+            <span className="font-semibold text-white">{product.rating}</span>
+            <span className="text-zinc-400">({product.reviewCount})</span>
+          </div>
+
+          {product.secondaryImage && (
+            <div className="px-2 py-0.5 rounded-full bg-black/70 backdrop-blur-md border border-gold/30 text-[9px] uppercase tracking-wider text-gold font-medium flex items-center gap-1">
+              <Eye className="w-2.5 h-2.5 text-gold" />
+              <span>{isHovered ? "Macro Shot" : "Hover Macro"}</span>
+            </div>
+          )}
         </div>
       </div>
 
