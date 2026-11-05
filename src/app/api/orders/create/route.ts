@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
       pincode: customer.pincode,
       total_amount: total,
       payment_method: paymentMethod || "DIRECT_UPI",
-      status: paymentMethod === "COD" ? ("DISPATCHED" as const) : ("PENDING_VERIFICATION" as const),
+      status: paymentMethod === "COD" || paymentMethod === "CARD" ? ("DISPATCHED" as const) : ("PENDING_VERIFICATION" as const),
     };
 
     const newOrder = await createOrder(orderPayload, orderItems);

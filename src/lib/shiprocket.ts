@@ -63,7 +63,7 @@ export async function createShiprocketOrder(
   items: OrderItem[] = []
 ): Promise<ShiprocketResult> {
   const token = await getShiprocketToken();
-  const isPrepaid = order.payment_method === "DIRECT_UPI";
+  const isPrepaid = order.payment_method === "DIRECT_UPI" || order.payment_method === "CARD";
 
   if (token) {
     try {

@@ -176,7 +176,7 @@ export default function FragrancePyramidModal() {
               <Sparkles className="w-4 h-4 text-gold" />
               <span>Three-Tier Olfactory Pyramid</span>
             </h3>
-            <span className="text-[11px] text-zinc-400 font-mono">12+ Hours Evolution</span>
+            <span className="text-[11px] text-zinc-400 font-mono">6 to 8 Hours Evolution</span>
           </div>
 
           <div className="space-y-3">
@@ -259,7 +259,7 @@ export default function FragrancePyramidModal() {
                 </div>
                 <span className="text-[10px] text-zinc-400 font-mono flex items-center gap-1">
                   <Clock className="w-3 h-3 text-zinc-400" />
-                  <span>6 to 14+ Hours • Magnetic Memory</span>
+                  <span>4 to 8 Hours • Magnetic Memory</span>
                 </span>
               </div>
               <p className="text-[11px] text-zinc-400 mb-2.5 font-light">

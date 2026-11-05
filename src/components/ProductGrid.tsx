@@ -107,7 +107,7 @@ export default function ProductGrid() {
             </div>
             <h4 className="text-sm font-semibold text-white tracking-wide">100% Authentic French Oil</h4>
             <p className="text-xs text-zinc-400 font-light max-w-xs">
-              Directly sourced from Grasse, France. Tested for 12+ hours skin and garment endurance.
+              Directly sourced from Grasse, France. Tested for 6 to 8 hours skin and garment endurance.
             </p>
           </div>
 
@@ -117,7 +117,7 @@ export default function ProductGrid() {
             </div>
             <h4 className="text-sm font-semibold text-white tracking-wide">Secure Checkout & COD</h4>
             <p className="text-xs text-zinc-400 font-light max-w-xs">
-              Razorpay 256-bit encrypted UPI/Card payments and Cash On Delivery available across India.
+              Direct UPI apps, Cards, and Cash On Delivery available across India with zero hidden fees.
             </p>
           </div>
         </div>

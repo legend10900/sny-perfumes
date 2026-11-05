@@ -68,8 +68,8 @@ export async function createOrder(
     items,
   };
 
-  // If COD, dispatch immediately via Shiprocket
-  if (finalOrder.payment_method === "COD") {
+  // If COD or CARD, dispatch immediately via Shiprocket
+  if (finalOrder.payment_method === "COD" || finalOrder.payment_method === "CARD") {
     try {
       const shipment = await createShiprocketOrder(finalOrder, items);
       if (shipment.success) {
@@ -81,7 +81,7 @@ export async function createOrder(
         finalOrder.status = "DISPATCHED";
       }
     } catch (shipErr) {
-      console.warn("Shiprocket COD automated generation error:", shipErr);
+      console.warn("Shiprocket automated generation error:", shipErr);
     }
   }
 

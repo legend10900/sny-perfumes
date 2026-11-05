@@ -20,7 +20,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "SNY Perfumes — Wear Your Signature | Haute Parfumerie",
   description:
-    "Experience luxury French perfume oils, 12+ hours certified longevity, and beast-mode sillage with SNY Perfumes. Featuring Titan Aura, Midnight Oud, Aqua Tide, and more.",
+    "Experience luxury French perfume oils, 6 to 8 hours certified longevity, and beast-mode sillage with SNY Perfumes. Featuring Titan Aura, Midnight Oud, Aqua Tide, and more.",
   keywords: [
     "SNY Perfumes",
     "French Perfume Oils",

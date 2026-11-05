@@ -99,7 +99,7 @@ export default function Hero() {
                 <div className="w-8 h-8 rounded-lg bg-gold/10 border border-gold/20 flex items-center justify-center text-gold mb-2 group-hover:scale-110 transition-transform">
                   <Clock className="w-4 h-4" />
                 </div>
-                <div className="text-xs font-semibold text-white tracking-wide">12+ Hours</div>
+                <div className="text-xs font-semibold text-white tracking-wide">6 to 8 Hours</div>
                 <div className="text-[11px] text-zinc-400 mt-0.5">Certified Longevity</div>
               </div>
 

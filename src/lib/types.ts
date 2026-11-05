@@ -52,7 +52,7 @@ export interface SpecialBundle {
   popular?: boolean;
 }
 
-export type PaymentMethod = 'DIRECT_UPI' | 'COD';
+export type PaymentMethod = 'DIRECT_UPI' | 'CARD' | 'COD';
 export type OrderStatus = 'PENDING_VERIFICATION' | 'VERIFIED' | 'DISPATCHED' | 'DELIVERED';
 
 export interface ShippingAddress {

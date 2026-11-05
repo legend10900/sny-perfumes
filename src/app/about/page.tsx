@@ -77,7 +77,7 @@ export default function AboutPage() {
               At <strong className="text-gold font-medium">SNY Perfumes</strong>, we believe that an extraordinary fragrance should not be an inaccessible luxury. Founded in the historic trading hub of <strong>Surat, Gujarat</strong>, our maison was born from a singular obsession: creating beast-mode longevity and room-commanding sillage using Grade-A French fragrance oils.
             </p>
             <p className="text-sm text-zinc-300 font-light leading-relaxed">
-              Every formula in our atelier is blended at high oil concentrations (25% to 35% Extrait De Parfum). We eliminate exorbitant retail markups, designer licensing premiums, and wasteful packaging—investing 100% of our focus into pure olfactory essence that evolves on your skin for 12+ hours.
+              Every formula in our atelier is blended at high oil concentrations (25% to 35% Extrait De Parfum). We eliminate exorbitant retail markups, designer licensing premiums, and wasteful packaging—investing 100% of our focus into pure olfactory essence that evolves on your skin for 6 to 8 hours.
             </p>
 
             <div className="pt-2">
@@ -151,7 +151,7 @@ export default function AboutPage() {
                 <Clock className="w-6 h-6" />
               </div>
               <h4 className="text-base font-serif font-bold text-white">
-                12+ Hours Certified Longevity
+                6 to 8 Hours Certified Longevity
               </h4>
               <p className="text-xs text-zinc-400 leading-relaxed font-light">
                 Concentrations up to 35% Extrait De Parfum anchor deep into fabric and skin, giving you all-day beast-mode sillage.

@@ -14,6 +14,8 @@ import {
   Sparkles,
   ShoppingBag,
   AlertCircle,
+  CreditCard,
+  CheckCircle,
 } from "lucide-react";
 import { useCartStore } from "@/store/cartStore";
 import { PaymentMethod, ShippingAddress, OrderRecord } from "@/lib/types";
@@ -38,6 +40,14 @@ export default function CheckoutPage() {
     pincode: "",
   });
 
+  // Credit / Debit card details
+  const [cardDetails, setCardDetails] = useState({
+    cardNumber: "",
+    cardholderName: "",
+    expiry: "",
+    cvv: "",
+  });
+
   const subtotal = getSubtotal();
   const shippingFee = getShippingFee();
   const total = getTotal();
@@ -45,6 +55,35 @@ export default function CheckoutPage() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setAddress((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleCardNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, "").slice(0, 16);
+    // Format in groups of 4 digits
+    let formatted = raw.match(/.{1,4}/g)?.join(" ") || raw;
+    setCardDetails((prev) => ({ ...prev, cardNumber: formatted }));
+  };
+
+  const handleExpiryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let raw = e.target.value.replace(/\D/g, "").slice(0, 4);
+    if (raw.length >= 3) {
+      raw = `${raw.slice(0, 2)}/${raw.slice(2, 4)}`;
+    }
+    setCardDetails((prev) => ({ ...prev, expiry: raw }));
+  };
+
+  const handleCvvChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const raw = e.target.value.replace(/\D/g, "").slice(0, 4);
+    setCardDetails((prev) => ({ ...prev, cvv: raw }));
+  };
+
+  const getCardBrand = (num: string) => {
+    const clean = num.replace(/\s+/g, "");
+    if (clean.startsWith("4")) return "Visa";
+    if (/^(5[1-5]|2[2-7])/.test(clean)) return "Mastercard";
+    if (/^(60|65|81|82)/.test(clean)) return "RuPay";
+    if (/^(34|37)/.test(clean)) return "Amex";
+    return "Card";
   };
 
   const validateForm = () => {
@@ -57,6 +96,17 @@ export default function CheckoutPage() {
     if (!address.state.trim()) return "Please enter your state";
     if (!address.pincode.trim() || address.pincode.length < 6)
       return "Please enter a valid 6-digit PIN code";
+
+    if (paymentMethod === "CARD") {
+      const cleanCard = cardDetails.cardNumber.replace(/\s+/g, "");
+      if (cleanCard.length < 15) return "Please enter a valid 16-digit Credit or Debit Card number";
+      if (!cardDetails.cardholderName.trim()) return "Please enter the cardholder name as printed on card";
+      if (!cardDetails.expiry || !cardDetails.expiry.includes("/") || cardDetails.expiry.length < 5)
+        return "Please enter valid card expiry date (MM/YY)";
+      if (!cardDetails.cvv || cardDetails.cvv.length < 3)
+        return "Please enter 3 or 4 digit CVV/CVC code";
+    }
+
     return null;
   };
 
@@ -98,12 +148,12 @@ export default function CheckoutPage() {
       const createdOrder: OrderRecord = data.order;
 
       if (paymentMethod === "DIRECT_UPI") {
-        // Show interactive Direct UPI screen with QR Code and UTR submission
+        // Show interactive Direct UPI screen with installed app deep-links, QR Code, and UTR submission
         clearCart();
         setActiveUpiOrder(createdOrder);
         setLoading(false);
       } else {
-        // COD order: Shiprocket is generated immediately
+        // CARD or COD order: Shiprocket is generated immediately
         clearCart();
         router.push(`/account/orders/${createdOrder.id}`);
       }
@@ -134,7 +184,7 @@ export default function CheckoutPage() {
             <span>•</span>
             <span className="flex items-center gap-1 text-zinc-300">
               <Lock className="w-3 h-3 text-gold" />
-              <span>0% Fee Direct UPI & COD</span>
+              <span>Direct UPI Apps, Cards & COD</span>
             </span>
           </div>
         </div>
@@ -290,7 +340,7 @@ export default function CheckoutPage() {
                   </div>
                 </div>
 
-                {/* Section 2: Zero-Fee Payment Selection */}
+                {/* Section 2: Payment Selection */}
                 <div className="p-6 md:p-8 rounded-3xl bg-zinc-950 border border-zinc-800 space-y-6">
                   <div className="flex items-center gap-2 pb-4 border-b border-zinc-800">
                     <span className="w-6 h-6 rounded-full bg-gold/10 border border-gold/40 text-gold flex items-center justify-center text-xs font-mono font-bold">
@@ -302,7 +352,7 @@ export default function CheckoutPage() {
                   </div>
 
                   <div className="space-y-3">
-                    {/* Direct UPI (Default, 0% fee) */}
+                    {/* Direct UPI (Default, 0% fee, installed app deep link & QR) */}
                     <label
                       onClick={() => setPaymentMethod("DIRECT_UPI")}
                       className={`flex items-start gap-4 p-4 rounded-2xl border cursor-pointer transition-all ${
@@ -322,17 +372,135 @@ export default function CheckoutPage() {
                         <div className="flex items-center justify-between">
                           <span className="text-xs font-semibold text-white flex items-center gap-2">
                             <QrCode className="w-4 h-4 text-gold" />
-                            <span>Direct UPI (0% Fee, Instant GPay/PhonePe/Paytm QR)</span>
+                            <span>Online Pay (Direct UPI Apps & QR Code)</span>
                           </span>
                           <span className="px-2 py-0.5 rounded bg-gold/10 border border-gold/30 text-[10px] text-gold font-semibold uppercase">
-                            Recommended
+                            0% Fee • Instant
                           </span>
                         </div>
                         <p className="text-[11px] text-zinc-400">
-                          Scan QR on desktop or tap to open your preferred UPI app on mobile. No gateway markups.
+                          Tap installed GPay, PhonePe, Paytm, CRED on mobile, or scan QR on desktop. Zero transaction fees.
                         </p>
                       </div>
                     </label>
+
+                    {/* Credit / Debit Card Option */}
+                    <div
+                      className={`p-4 rounded-2xl border transition-all ${
+                        paymentMethod === "CARD"
+                          ? "bg-zinc-900 border-gold shadow-gold-glow"
+                          : "bg-zinc-950 border-zinc-800 hover:border-zinc-700"
+                      }`}
+                    >
+                      <label
+                        onClick={() => setPaymentMethod("CARD")}
+                        className="flex items-start gap-4 cursor-pointer"
+                      >
+                        <input
+                          type="radio"
+                          name="paymentMethod"
+                          checked={paymentMethod === "CARD"}
+                          onChange={() => setPaymentMethod("CARD")}
+                          className="mt-1 text-gold focus:ring-gold"
+                        />
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-semibold text-white flex items-center gap-2">
+                              <CreditCard className="w-4 h-4 text-amber-400" />
+                              <span>Credit & Debit Cards (Visa, Mastercard, RuPay)</span>
+                            </span>
+                            <span className="px-2 py-0.5 rounded bg-zinc-800 text-[10px] text-zinc-300 font-mono">
+                              256-Bit SSL
+                            </span>
+                          </div>
+                          <p className="text-[11px] text-zinc-400">
+                            Pay securely with any Indian or International debit or credit card.
+                          </p>
+                        </div>
+                      </label>
+
+                      {/* Interactive Card Input Form when CARD is selected */}
+                      {paymentMethod === "CARD" && (
+                        <div className="mt-4 pt-4 border-t border-zinc-800/80 space-y-3.5 animate-in fade-in">
+                          <div className="flex items-center justify-between text-[11px] text-zinc-400">
+                            <span>Card Details</span>
+                            <span className="text-gold font-mono font-medium">
+                              {getCardBrand(cardDetails.cardNumber)}
+                            </span>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-medium text-zinc-400">
+                              Card Number
+                            </label>
+                            <div className="relative">
+                              <input
+                                type="text"
+                                maxLength={19}
+                                value={cardDetails.cardNumber}
+                                onChange={handleCardNumberChange}
+                                placeholder="4000 1234 5678 9010"
+                                className="w-full px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-700/80 focus:border-gold focus:outline-none text-white text-xs placeholder:text-zinc-600 font-mono tracking-wider transition-colors"
+                              />
+                              <CreditCard className="w-4 h-4 text-zinc-500 absolute right-3.5 top-3" />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            <label className="text-[11px] font-medium text-zinc-400">
+                              Cardholder Name
+                            </label>
+                            <input
+                              type="text"
+                              value={cardDetails.cardholderName}
+                              onChange={(e) =>
+                                setCardDetails((prev) => ({
+                                  ...prev,
+                                  cardholderName: e.target.value.toUpperCase(),
+                                }))
+                              }
+                              placeholder="AS PRINTED ON CARD"
+                              className="w-full px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-700/80 focus:border-gold focus:outline-none text-white text-xs placeholder:text-zinc-600 tracking-wider transition-colors"
+                            />
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-3">
+                            <div className="space-y-1.5">
+                              <label className="text-[11px] font-medium text-zinc-400">
+                                Expiry (MM/YY)
+                              </label>
+                              <input
+                                type="text"
+                                maxLength={5}
+                                value={cardDetails.expiry}
+                                onChange={handleExpiryChange}
+                                placeholder="MM/YY"
+                                className="w-full px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-700/80 focus:border-gold focus:outline-none text-white text-xs placeholder:text-zinc-600 font-mono tracking-wider transition-colors text-center"
+                              />
+                            </div>
+
+                            <div className="space-y-1.5">
+                              <label className="text-[11px] font-medium text-zinc-400">
+                                CVV / CVC
+                              </label>
+                              <input
+                                type="password"
+                                maxLength={4}
+                                value={cardDetails.cvv}
+                                onChange={handleCvvChange}
+                                placeholder="•••"
+                                className="w-full px-4 py-2.5 rounded-xl bg-zinc-950 border border-zinc-700/80 focus:border-gold focus:outline-none text-white text-xs placeholder:text-zinc-600 font-mono tracking-widest transition-colors text-center"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-2 pt-1 text-[10px] text-zinc-500">
+                            <Lock className="w-3 h-3 text-emerald-400" />
+                            <span>PCI-DSS Compliant • Bank-grade 256-Bit SSL Encryption</span>
+                          </div>
+                        </div>
+                      )}
+                    </div>
 
                     {/* Cash On Delivery Option */}
                     <label
@@ -377,10 +545,12 @@ export default function CheckoutPage() {
                   {loading ? (
                     <div className="flex items-center gap-2">
                       <div className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />
-                      <span>Creating Atelier Order...</span>
+                      <span>Processing Atelier Order...</span>
                     </div>
                   ) : paymentMethod === "DIRECT_UPI" ? (
-                    <span>Proceed to Direct UPI QR (₹{total})</span>
+                    <span>Proceed to Online Pay / UPI Apps (₹{total})</span>
+                  ) : paymentMethod === "CARD" ? (
+                    <span>Pay Securely with Card (₹{total})</span>
                   ) : (
                     <span>Confirm Cash On Delivery Order (₹{total})</span>
                   )}
@@ -452,7 +622,7 @@ export default function CheckoutPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-gold flex-shrink-0" />
-                    <span>Zero payment processing fees on Direct UPI</span>
+                    <span>Zero convenience fees on Direct UPI & Cards</span>
                   </div>
                 </div>
               </div>
