@@ -146,7 +146,7 @@ function TrackOrderContent() {
                   </span>
                 </div>
                 <div className="text-xs text-zinc-400">
-                  Placed on {new Date(order.created_at).toLocaleDateString("en-IN", { dateStyle: "long" })}
+                  Placed on {new Date(order.created_at || Date.now()).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
                 </div>
               </div>
 

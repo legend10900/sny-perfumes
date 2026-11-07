@@ -17,7 +17,7 @@ export async function getShiprocketToken(): Promise<string | null> {
   }
 
   try {
-    const res = await fetch("https://apiv2.shiprocket.in/v2/ks/auth/login", {
+    const res = await fetch("https://apiv2.shiprocket.in/v1/external/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -124,7 +124,7 @@ export async function createShiprocketOrder(
         weight: 0.45,
       };
 
-      const res = await fetch("https://apiv2.shiprocket.in/v2/ks/order/create/adhoc", {
+      const res = await fetch("https://apiv2.shiprocket.in/v1/external/orders/create/adhoc", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -183,7 +183,7 @@ export async function cancelShiprocketOrder(shiprocketOrderId: number): Promise<
   }
 
   try {
-    const res = await fetch("https://apiv2.shiprocket.in/v2/ks/orders/cancel", {
+    const res = await fetch("https://apiv2.shiprocket.in/v1/external/orders/cancel", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

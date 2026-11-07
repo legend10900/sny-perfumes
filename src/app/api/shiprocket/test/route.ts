@@ -28,7 +28,7 @@ export async function GET() {
 
   // Step 2: Attempt authentication
   try {
-    const authRes = await fetch("https://apiv2.shiprocket.in/v2/ks/auth/login", {
+    const authRes = await fetch("https://apiv2.shiprocket.in/v1/external/auth/login", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, password }),
@@ -56,7 +56,7 @@ export async function GET() {
     let pickupLocationFound = false;
 
     try {
-      const pickupRes = await fetch("https://apiv2.shiprocket.in/v2/ks/settings/company/pickup", {
+      const pickupRes = await fetch("https://apiv2.shiprocket.in/v1/external/settings/company/pickup", {
         headers: {
           Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
@@ -79,7 +79,7 @@ export async function GET() {
     let walletBalance = null;
     try {
       const walletRes = await fetch(
-        "https://apiv2.shiprocket.in/v2/ks/account/details/wallet-balance",
+        "https://apiv2.shiprocket.in/v1/external/account/details/wallet-balance",
         {
           headers: {
             Authorization: `Bearer ${token}`,

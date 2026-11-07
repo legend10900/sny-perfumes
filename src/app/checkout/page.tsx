@@ -147,6 +147,14 @@ export default function CheckoutPage() {
 
       const createdOrder: OrderRecord = data.order;
 
+      // Cache order in localStorage so order details page loads instantly without server lag
+      try {
+        localStorage.setItem("sny_current_order", JSON.stringify(createdOrder));
+        localStorage.setItem(`sny_order_${createdOrder.id}`, JSON.stringify(createdOrder));
+      } catch (storageErr) {
+        console.warn("Storage error:", storageErr);
+      }
+
       if (paymentMethod === "DIRECT_UPI") {
         // Show interactive Direct UPI screen with installed app deep-links, QR Code, and UTR submission
         clearCart();
