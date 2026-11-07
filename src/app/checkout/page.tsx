@@ -161,9 +161,9 @@ export default function CheckoutPage() {
         setActiveUpiOrder(createdOrder);
         setLoading(false);
       } else {
-        // CARD or COD order: Shiprocket is generated immediately
+        // CARD or COD order: perform clean, instant top-level navigation to order confirmation
         clearCart();
-        router.push(`/account/orders/${createdOrder.id}`);
+        window.location.href = `/account/orders/${encodeURIComponent(createdOrder.id)}`;
       }
     } catch (err: any) {
       console.error("Checkout submission failed:", err);

@@ -20,7 +20,8 @@ import { OrderRecord, TrackingStep } from "@/lib/types";
 
 export default function OrderDetailsPage() {
   const params = useParams();
-  const orderId = (params?.id as string) || "";
+  const rawId = typeof params?.id === "string" ? params.id : Array.isArray(params?.id) ? params.id[0] : "";
+  const orderId = rawId ? decodeURIComponent(rawId) : "";
 
   const [order, setOrder] = useState<OrderRecord | null>(null);
   const [steps, setSteps] = useState<TrackingStep[]>([]);
