@@ -68,7 +68,24 @@ export async function createOrder(
     items,
   };
 
-  // Save to memory cache (awaits admin action: Take Order & Dispatch, or Cancel)
+  // If COD or CARD, dispatch automatically via Shiprocket
+  if (finalOrder.payment_method === "COD" || finalOrder.payment_method === "CARD") {
+    try {
+      const shipment = await createShiprocketOrder(finalOrder, items);
+      if (shipment.success) {
+        finalOrder.shiprocket_order_id = shipment.order_id;
+        finalOrder.shiprocket_shipment_id = shipment.shipment_id;
+        finalOrder.awb_code = shipment.awb_code;
+        finalOrder.courier_name = shipment.courier_name;
+        finalOrder.tracking_url = shipment.tracking_url;
+        finalOrder.status = "DISPATCHED";
+      }
+    } catch (shipErr) {
+      console.warn("Shiprocket automated generation error:", shipErr);
+    }
+  }
+
+  // Save to memory cache
   memoryOrders.set(finalOrder.id, finalOrder);
 
   // If Supabase is connected, write to Supabase tables
@@ -120,44 +137,51 @@ export async function createOrder(
   return finalOrder;
 }
 
-// Update order with 12-digit UTR
+// Update order with 12-digit UTR and trigger automated Shiprocket dispatch
 export async function updateOrderUTR(orderId: string, utrNumber: string): Promise<OrderRecord | null> {
   const cleanUTR = utrNumber.trim();
-  let order = memoryOrders.get(orderId);
+  let order = await getOrderById(orderId);
+  if (!order) return null;
+
+  order.utr_number = cleanUTR;
+  order.status = "DISPATCHED";
+
+  // Automatically generate Shiprocket prepaid consignment on UTR submission
+  try {
+    const shipment = await createShiprocketOrder(order, order.items || []);
+    if (shipment.success) {
+      order.shiprocket_order_id = shipment.order_id;
+      order.shiprocket_shipment_id = shipment.shipment_id;
+      order.awb_code = shipment.awb_code;
+      order.courier_name = shipment.courier_name;
+      order.tracking_url = shipment.tracking_url;
+      order.status = "DISPATCHED";
+    }
+  } catch (shipErr) {
+    console.warn("Shiprocket automated dispatch error on UTR:", shipErr);
+  }
 
   if (isSupabaseConfigured && supabase) {
     try {
-      const { data, error } = await supabase
+      await supabase
         .from("orders")
         .update({
           utr_number: cleanUTR,
-          status: "PENDING_VERIFICATION",
+          status: order.status,
+          shiprocket_order_id: order.shiprocket_order_id || null,
+          shiprocket_shipment_id: order.shiprocket_shipment_id || null,
+          awb_code: order.awb_code || null,
+          courier_name: order.courier_name || null,
+          tracking_url: order.tracking_url || null,
         })
-        .eq("id", orderId)
-        .select()
-        .single();
-
-      if (!error && data) {
-        const updated: OrderRecord = {
-          ...data,
-          items: order?.items || [],
-        };
-        memoryOrders.set(orderId, updated);
-        return updated;
-      }
+        .eq("id", orderId);
     } catch (err) {
       console.warn("Supabase update UTR error:", err);
     }
   }
 
-  if (order) {
-    order.utr_number = cleanUTR;
-    order.status = "PENDING_VERIFICATION";
-    memoryOrders.set(orderId, order);
-    return order;
-  }
-
-  return null;
+  memoryOrders.set(orderId, order);
+  return order;
 }
 
 // Admin action: Take order & trigger automated Shiprocket dispatch

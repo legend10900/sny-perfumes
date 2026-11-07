@@ -127,13 +127,13 @@ export default function CustomerCarePage() {
                 For bulk gifting, corporate orders, parcel inquiries, or damage replacement requests with unboxing videos.
               </p>
               <div className="space-y-1 text-xs text-zinc-300 font-mono">
-                <div>concierge@snyperfumes.com</div>
+                <div>supportsny@gmail.com</div>
                 <div className="text-zinc-500 text-[11px]">10:00 AM – 7:00 PM IST</div>
               </div>
             </div>
 
             <a
-              href="mailto:concierge@snyperfumes.com"
+              href="mailto:supportsny@gmail.com"
               className="w-full py-3 px-4 rounded-full bg-zinc-900 hover:bg-zinc-800 border border-zinc-700 text-white font-semibold text-xs tracking-wider uppercase text-center block transition-all"
             >
               Send An Email

@@ -42,9 +42,9 @@ export async function POST(req: NextRequest) {
       total_amount: total,
       payment_method: paymentMethod || "DIRECT_UPI",
       status:
-        paymentMethod === "DIRECT_UPI"
-          ? ("PENDING_VERIFICATION" as const)
-          : ("PENDING_APPROVAL" as const),
+        paymentMethod === "COD" || paymentMethod === "CARD"
+          ? ("DISPATCHED" as const)
+          : ("PENDING_VERIFICATION" as const),
     };
 
     const newOrder = await createOrder(orderPayload, orderItems);

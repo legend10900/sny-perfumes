@@ -128,7 +128,9 @@ export default function TermsPage() {
               <span>Www.instagram.com/sny_perfumes</span>
             </a>
             <span className="text-zinc-600">•</span>
-            <span className="text-zinc-400">concierge@snyperfumes.com</span>
+            <a href="mailto:supportsny@gmail.com" className="text-zinc-400 hover:text-gold transition-colors">
+              supportsny@gmail.com
+            </a>
           </div>
         </div>
       </div>

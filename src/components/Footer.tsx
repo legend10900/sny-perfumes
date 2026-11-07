@@ -143,11 +143,6 @@ export default function Footer() {
                   Terms and Conditions
                 </Link>
               </li>
-              <li>
-                <Link href="/admin/orders" className="text-zinc-600 hover:text-zinc-400 transition-colors">
-                  Atelier Dispatch Portal
-                </Link>
-              </li>
             </ul>
           </div>
         </div>
@@ -160,7 +155,9 @@ export default function Footer() {
           </div>
           <div className="flex items-center gap-2">
             <Mail className="w-4 h-4 text-gold flex-shrink-0" />
-            <span>concierge@snyperfumes.com</span>
+            <a href="mailto:supportsny@gmail.com" className="hover:text-gold transition-colors">
+              supportsny@gmail.com
+            </a>
           </div>
           <div className="flex items-center gap-2">
             <Instagram className="w-4 h-4 text-gold flex-shrink-0" />

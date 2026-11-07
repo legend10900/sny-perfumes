@@ -199,10 +199,10 @@ export default function PolicyPage() {
               <MapPin className="w-4 h-4 text-gold" />
               <span>Surat, Gujarat, India</span>
             </span>
-            <span className="flex items-center gap-1.5 text-zinc-300">
+            <a href="mailto:supportsny@gmail.com" className="flex items-center gap-1.5 text-zinc-300 hover:text-gold transition-colors">
               <Mail className="w-4 h-4 text-gold" />
-              <span>concierge@snyperfumes.com</span>
-            </span>
+              <span>supportsny@gmail.com</span>
+            </a>
             <a
               href="https://www.instagram.com/sny_perfumes"
               target="_blank"
