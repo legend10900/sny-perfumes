@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { OrderRecord, OrderItem } from "./types";
-import { createShiprocketOrder } from "./shiprocket";
+import { createShiprocketOrder, cancelShiprocketOrder } from "./shiprocket";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseServiceKey =
@@ -68,24 +68,7 @@ export async function createOrder(
     items,
   };
 
-  // If COD or CARD, dispatch immediately via Shiprocket
-  if (finalOrder.payment_method === "COD" || finalOrder.payment_method === "CARD") {
-    try {
-      const shipment = await createShiprocketOrder(finalOrder, items);
-      if (shipment.success) {
-        finalOrder.shiprocket_order_id = shipment.order_id;
-        finalOrder.shiprocket_shipment_id = shipment.shipment_id;
-        finalOrder.awb_code = shipment.awb_code;
-        finalOrder.courier_name = shipment.courier_name;
-        finalOrder.tracking_url = shipment.tracking_url;
-        finalOrder.status = "DISPATCHED";
-      }
-    } catch (shipErr) {
-      console.warn("Shiprocket automated generation error:", shipErr);
-    }
-  }
-
-  // Save to memory cache
+  // Save to memory cache (awaits admin action: Take Order & Dispatch, or Cancel)
   memoryOrders.set(finalOrder.id, finalOrder);
 
   // If Supabase is connected, write to Supabase tables
@@ -177,15 +160,19 @@ export async function updateOrderUTR(orderId: string, utrNumber: string): Promis
   return null;
 }
 
-// Admin action: Verify payment and trigger automated Shiprocket dispatch
-export async function verifyAndDispatchOrder(orderId: string): Promise<{ success: boolean; order?: OrderRecord; error?: string }> {
+// Admin action: Take order & trigger automated Shiprocket dispatch
+export async function acceptAndDispatchOrder(orderId: string): Promise<{ success: boolean; order?: OrderRecord; error?: string }> {
   let order = await getOrderById(orderId);
   if (!order) {
     return { success: false, error: "Order not found" };
   }
 
+  if (order.status === "CANCELLED") {
+    return { success: false, error: "Cannot dispatch a cancelled order." };
+  }
+
   try {
-    // Trigger Shiprocket ad-hoc API with payment_method: "Prepaid"
+    // Trigger Shiprocket ad-hoc API (prepaid for UPI/Card, COD for Cash on Delivery)
     const shipment = await createShiprocketOrder(order, order.items || []);
 
     const updatedData: Partial<OrderRecord> = {
@@ -210,6 +197,47 @@ export async function verifyAndDispatchOrder(orderId: string): Promise<{ success
     return { success: true, order: mergedOrder };
   } catch (err: any) {
     return { success: false, error: err.message || "Failed to dispatch via Shiprocket" };
+  }
+}
+
+// Backward-compatible alias
+export const verifyAndDispatchOrder = acceptAndDispatchOrder;
+
+// Admin action: Cancel order (and cancel Shiprocket shipment if already created)
+export async function cancelOrder(
+  orderId: string,
+  reason?: string
+): Promise<{ success: boolean; order?: OrderRecord; error?: string }> {
+  let order = await getOrderById(orderId);
+  if (!order) {
+    return { success: false, error: "Order not found" };
+  }
+
+  try {
+    // If order was already created in Shiprocket, cancel in Shiprocket to avoid courier charges
+    if (order.shiprocket_order_id) {
+      await cancelShiprocketOrder(order.shiprocket_order_id);
+    }
+
+    const cancelReason = reason?.trim() || "Cancelled by Atelier Operations";
+    const updatedData: Partial<OrderRecord> = {
+      status: "CANCELLED",
+      cancel_reason: cancelReason,
+    };
+
+    if (isSupabaseConfigured && supabase) {
+      await supabase.from("orders").update(updatedData).eq("id", orderId);
+    }
+
+    const mergedOrder: OrderRecord = {
+      ...order,
+      ...updatedData,
+    };
+    memoryOrders.set(orderId, mergedOrder);
+
+    return { success: true, order: mergedOrder };
+  } catch (err: any) {
+    return { success: false, error: err.message || "Failed to cancel order" };
   }
 }
 

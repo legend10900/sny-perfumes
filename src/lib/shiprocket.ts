@@ -171,3 +171,37 @@ export async function createShiprocketOrder(
     rawResponse: { simulated: true },
   };
 }
+
+/**
+ * Cancels an order/shipment in Shiprocket to prevent courier dispatch
+ * Matches POST https://apiv2.shiprocket.in/v2/ks/orders/cancel
+ */
+export async function cancelShiprocketOrder(shiprocketOrderId: number): Promise<{ success: boolean; message?: string }> {
+  const token = await getShiprocketToken();
+  if (!token || !shiprocketOrderId) {
+    return { success: true, message: "Order marked cancelled locally" };
+  }
+
+  try {
+    const res = await fetch("https://apiv2.shiprocket.in/v2/ks/orders/cancel", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({
+        ids: [shiprocketOrderId],
+      }),
+    });
+
+    const data = await res.json();
+    return {
+      success: res.ok,
+      message: data.message || "Shiprocket order cancellation requested",
+    };
+  } catch (err: any) {
+    console.warn("Shiprocket cancellation exception:", err);
+    return { success: false, message: err?.message };
+  }
+}
+

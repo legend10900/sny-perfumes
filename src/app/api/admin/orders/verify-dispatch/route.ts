@@ -1,32 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAndDispatchOrder, getAllOrders } from "@/lib/supabase";
+import { acceptAndDispatchOrder, cancelOrder, getAllOrders } from "@/lib/supabase";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { orderId } = body;
+    const { orderId, action = "ACCEPT", reason } = body;
 
     if (!orderId) {
       return NextResponse.json({ error: "Order ID is required" }, { status: 400 });
     }
 
-    const result = await verifyAndDispatchOrder(orderId);
+    if (action === "CANCEL") {
+      const cancelResult = await cancelOrder(orderId, reason);
+      if (!cancelResult.success) {
+        return NextResponse.json(
+          { error: cancelResult.error || "Failed to cancel order" },
+          { status: 400 }
+        );
+      }
+      return NextResponse.json({
+        success: true,
+        order: cancelResult.order,
+        message: "Order successfully cancelled and logistics stopped.",
+      });
+    }
+
+    // Default: ACCEPT / TAKE ORDER & DISPATCH
+    const result = await acceptAndDispatchOrder(orderId);
 
     if (!result.success) {
-      return NextResponse.json({ error: result.error || "Verification failed" }, { status: 400 });
+      return NextResponse.json({ error: result.error || "Verification and dispatch failed" }, { status: 400 });
     }
 
     return NextResponse.json({
       success: true,
       order: result.order,
-      message: "Order verified and automated Shiprocket courier consignment created!",
+      message: "Order accepted and automated Shiprocket courier consignment created!",
     });
   } catch (err: any) {
-    console.error("Admin verify dispatch error:", err);
+    console.error("Admin order action error:", err);
     return NextResponse.json(
-      { error: err?.message || "Failed to dispatch order" },
+      { error: err?.message || "Failed to process order action" },
       { status: 500 }
     );
   }

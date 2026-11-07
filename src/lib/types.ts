@@ -53,7 +53,13 @@ export interface SpecialBundle {
 }
 
 export type PaymentMethod = 'DIRECT_UPI' | 'CARD' | 'COD';
-export type OrderStatus = 'PENDING_VERIFICATION' | 'VERIFIED' | 'DISPATCHED' | 'DELIVERED';
+export type OrderStatus =
+  | 'PENDING_APPROVAL'
+  | 'PENDING_VERIFICATION'
+  | 'VERIFIED'
+  | 'DISPATCHED'
+  | 'DELIVERED'
+  | 'CANCELLED';
 
 export interface ShippingAddress {
   fullName: string;
@@ -94,6 +100,7 @@ export interface OrderRecord {
   awb_code?: string | null;
   courier_name?: string | null;
   tracking_url?: string | null;
+  cancel_reason?: string | null;
   created_at: string;
   items?: OrderItem[];
 }

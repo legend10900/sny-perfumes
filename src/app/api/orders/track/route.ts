@@ -22,23 +22,56 @@ export async function GET(req: NextRequest) {
       );
     }
 
+    if (order.status === "CANCELLED") {
+      const cancelledSteps: TrackingStep[] = [
+        {
+          status: "CANCELLED",
+          label: "Order Cancelled",
+          description: order.cancel_reason || "This order was cancelled by Atelier Operations or at customer request.",
+          timestamp: new Date(order.created_at).toLocaleDateString("en-IN", {
+            month: "short",
+            day: "numeric",
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          completed: true,
+          current: true,
+        },
+      ];
+
+      return NextResponse.json({
+        success: true,
+        order,
+        steps: cancelledSteps,
+      });
+    }
+
     const statusList: OrderStatus[] = [
+      "PENDING_APPROVAL",
       "PENDING_VERIFICATION",
       "VERIFIED",
       "DISPATCHED",
       "DELIVERED",
     ];
 
+    const isPending = order.status === "PENDING_APPROVAL" || order.status === "PENDING_VERIFICATION";
     const currentIndex = statusList.indexOf(order.status);
     const safeIndex = currentIndex === -1 ? 0 : currentIndex;
 
     const steps: TrackingStep[] = [
       {
-        status: "PENDING_VERIFICATION",
-        label: order.payment_method === "COD" ? "Order Confirmed (COD)" : "Payment Reference Submitted",
+        status: "PENDING_APPROVAL",
+        label:
+          order.payment_method === "COD"
+            ? "Order Placed (COD Processing)"
+            : order.payment_method === "CARD"
+            ? "Order Placed (Card Authorized)"
+            : "Payment Reference Submitted",
         description:
           order.payment_method === "COD"
-            ? "Order accepted for Cash on Delivery. Queued for packaging."
+            ? "Order received for Cash on Delivery. Atelier reviewing and prepping packaging."
+            : order.payment_method === "CARD"
+            ? "Card payment received. Queued for formulation and dispatch."
             : order.utr_number
             ? `12-digit UTR (${order.utr_number}) received. Atelier verifying bank notification.`
             : "Direct UPI initiated. Awaiting 12-digit UTR confirmation.",
@@ -48,15 +81,15 @@ export async function GET(req: NextRequest) {
           hour: "2-digit",
           minute: "2-digit",
         }),
-        completed: safeIndex >= 0,
-        current: safeIndex === 0,
+        completed: true,
+        current: isPending,
       },
       {
         status: "VERIFIED",
-        label: "Atelier Verified & Formulated",
-        description: "Payment confirmed. Authentic French perfume oil batch sealed in luxury matte bottle.",
-        completed: safeIndex >= 1,
-        current: safeIndex === 1,
+        label: "Atelier Formulated & Approved",
+        description: "Order verified. Authentic French perfume oil flacon sealed with luxury packaging.",
+        completed: safeIndex >= 2,
+        current: order.status === "VERIFIED",
       },
       {
         status: "DISPATCHED",
@@ -64,15 +97,15 @@ export async function GET(req: NextRequest) {
         description: order.courier_name
           ? `In transit with ${order.courier_name}. AWB: ${order.awb_code || "Generated"}.`
           : "Dispatched to courier network. Safely moving to your city.",
-        completed: safeIndex >= 2,
-        current: safeIndex === 2,
+        completed: safeIndex >= 3,
+        current: order.status === "DISPATCHED",
       },
       {
         status: "DELIVERED",
         label: "Delivered to Doorstep",
         description: "Delivered into your hands. Unbox and wear your signature scent.",
-        completed: safeIndex >= 3,
-        current: safeIndex === 3,
+        completed: safeIndex >= 4,
+        current: order.status === "DELIVERED",
       },
     ];
 

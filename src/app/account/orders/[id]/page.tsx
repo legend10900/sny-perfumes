@@ -134,6 +134,18 @@ export default function OrderDetailsPage() {
           </div>
 
           {/* Payment & UTR Meta Banner */}
+          {order.status === "CANCELLED" && (
+            <div className="p-4 rounded-2xl bg-red-950/60 border border-red-500/50 text-red-200 text-xs flex items-center gap-3 animate-in fade-in">
+              <AlertCircle className="w-5 h-5 text-red-400 flex-shrink-0" />
+              <div>
+                <div className="font-semibold text-white">Order Cancelled</div>
+                <div className="text-zinc-400 mt-0.5">
+                  {order.cancel_reason || "This order was cancelled by Atelier Operations."}
+                </div>
+              </div>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
             {/* Payment Method */}
             <div className="p-4 rounded-2xl bg-zinc-900/60 border border-zinc-800/80 space-y-1">
@@ -145,6 +157,11 @@ export default function OrderDetailsPage() {
                   <>
                     <QrCode className="w-4 h-4 text-gold" />
                     <span>Direct UPI (0% Fee)</span>
+                  </>
+                ) : order.payment_method === "CARD" ? (
+                  <>
+                    <ShieldCheck className="w-4 h-4 text-amber-400" />
+                    <span>Credit / Debit Card</span>
                   </>
                 ) : (
                   <>
