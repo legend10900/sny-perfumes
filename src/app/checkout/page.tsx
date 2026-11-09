@@ -48,9 +48,11 @@ export default function CheckoutPage() {
     cvv: "",
   });
 
+  const COD_FEE = 50;
   const subtotal = getSubtotal();
   const shippingFee = getShippingFee();
-  const total = getTotal();
+  const codFee = paymentMethod === "COD" ? COD_FEE : 0;
+  const total = subtotal + shippingFee + codFee;
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -383,7 +385,7 @@ export default function CheckoutPage() {
                             <span>Online Pay (Direct UPI Apps & QR Code)</span>
                           </span>
                           <span className="px-2 py-0.5 rounded bg-gold/10 border border-gold/30 text-[10px] text-gold font-semibold uppercase">
-                            0% Fee • Instant
+                            0% Fee • Instant (Save ₹50)
                           </span>
                         </div>
                         <p className="text-[11px] text-zinc-400">
@@ -532,12 +534,12 @@ export default function CheckoutPage() {
                             <Banknote className="w-4 h-4 text-zinc-400" />
                             <span>Cash on Delivery (COD)</span>
                           </span>
-                          <span className="text-[11px] text-zinc-400 font-mono">
-                            Pay at Doorstep
+                          <span className="px-2 py-0.5 rounded bg-amber-950/70 border border-amber-500/40 text-[10px] text-amber-300 font-mono font-semibold">
+                            +₹50 Handling Fee
                           </span>
                         </div>
                         <p className="text-[11px] text-zinc-400">
-                          Pay cash or UPI directly to the courier agent when your parcel arrives.
+                          Pay cash or UPI directly to the courier agent when your parcel arrives. A ₹50 handling charge is applied for Cash on Delivery. Pay online via UPI or Card to save ₹50.
                         </p>
                       </div>
                     </label>
@@ -617,6 +619,17 @@ export default function CheckoutPage() {
                       )}
                     </span>
                   </div>
+                  {paymentMethod === "COD" ? (
+                    <div className="flex justify-between text-amber-300 animate-in fade-in">
+                      <span>Cash on Delivery (COD) Fee</span>
+                      <span className="font-mono font-medium">+₹{COD_FEE}</span>
+                    </div>
+                  ) : (
+                    <div className="flex justify-between text-emerald-400 text-[11px]">
+                      <span>Online Pay Benefit</span>
+                      <span className="font-mono font-medium">₹0 Fee (Saved ₹50)</span>
+                    </div>
+                  )}
                   <div className="flex justify-between text-base font-bold text-white pt-3 border-t border-zinc-800">
                     <span className="font-serif">Grand Total</span>
                     <span className="font-mono text-gold">₹{total}</span>

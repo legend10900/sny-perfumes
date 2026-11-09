@@ -214,7 +214,7 @@ export default function CartDrawer() {
 
               <div className="flex items-center justify-center gap-2 text-[10px] text-zinc-400 text-center">
                 <Sparkles className="w-3 h-3 text-gold" />
-                <span>Direct UPI (0% Fee) • COD Available • 📦 Pan India Delivery from Surat</span>
+                <span>Direct UPI (0% Fee • Save ₹50) • COD Available (+₹50) • 📦 Pan India Delivery</span>
               </div>
             </div>
           )}
