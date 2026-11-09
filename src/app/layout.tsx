@@ -19,7 +19,7 @@ const inter = Inter({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://sny-perfumes.vercel.app";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.snyonline.in";
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -31,6 +31,9 @@ export const metadata: Metadata = {
     "Discover SNY Perfumes — artisanal French perfume oils formulated with 6 to 8 hours certified longevity and beast-mode projection. Crafted in Surat, Gujarat with Pan-India delivery. Featuring Titan Aura, Midnight Oud, Aqua Tide, and more.",
   keywords: [
     "SNY",
+    "sny online",
+    "snyonline",
+    "snyonline.in",
     "SNY Perfumes",
     "SNY Perfume",
     "SNY Fragrances",

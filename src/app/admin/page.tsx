@@ -210,7 +210,7 @@ export default function AdminPortalPage() {
   // Build WhatsApp pre-filled chat link
   const getWhatsAppLink = (order: OrderRecord) => {
     const rawPhone = (order.customer_phone || "").replace(/\D/g, "").slice(-10);
-    const trackingLink = order.tracking_url || `https://snyperfumes.com/track-order?q=${order.id}`;
+    const trackingLink = order.tracking_url || `https://www.snyonline.in/track-order?q=${order.id}`;
 
     let msg = `Hello ${order.customer_name || "Valued Customer"}! ✨\nThis is SNY Perfumes regarding your Order #${order.id}.\n\n`;
     if (order.status === "DISPATCHED") {
